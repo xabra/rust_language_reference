@@ -2,6 +2,8 @@
 
 ## Create and Run Project
 
+Cargo is Rust's build system and package manager. `cargo build` will invoke the Rust compiler, _rustc_
+
 ```rust
 $ cargo new my_project      // Create a new project inside my_project directory
 $ cd my_project               // change to the project directory
@@ -55,15 +57,16 @@ fn main() {
 
 ## Literals
 
-The base is denoted with a lower case character. Underscore \_ may be used to make long numbers more readable. The type may be specified explicitly, eg. `25u16`
+The base is denoted with a lower case character. Underscore \_ is ignored and may be used to make long numbers more readable. The type may be specified explicitly, eg. `25u16`
 
-| Type           | Example             |
-| -------------- | ------------------- |
-| Decimal        | `34678` or `34_678` |
-| Hex            | `0xFF`              |
-| Octal          | `0o77`              |
-| Binary         | `0b1111_0000`       |
-| Byte (u8 only) | `b'A' `             |
+| Type           | Example                |
+| -------------- | ---------------------- |
+| Float          | `2.0`, `2f64`, `2_f64` |
+| Decimal        | `34678` or `34_678`    |
+| Hex            | `0xFF`                 |
+| Octal          | `0o77`                 |
+| Binary         | `0b1111_0000`          |
+| Byte (u8 only) | `b'A' `                |
 
 ## Constants
 
@@ -75,7 +78,8 @@ const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
 
 ## Functions
 
-Functions can appear in the code in any order. They do not need to be defined before use.
+- Function bodies are made up of a series of _statements_, optionally ending in an _expression_.
+- Functions can appear in the code in any order. They do not need to be defined before use.
 
 ```rust
 fn main() {                // Code entry point is always the main() function
@@ -111,6 +115,16 @@ Rust is strongly typed. Types are determined at compile-time but may be set expl
 | Character        | `char`                           | A 4-byte unicode character eg. `let c = 'z'`;                              |
 | Unit Type        | `() `                            | value = `()` empty tuple                                                   |
 
+### Casting Types
+
+Types may be explicitly cast using the `as` keyword
+
+```rust
+let d = 200 as f64    // d will be f64
+```
+
+When casting from float to int the `as` keyword performs a _saturating cast_. If the floating point value exceeds the upper bound or is less than the lower bound, the returned value will be equal to the bound crossed.
+
 ### Tuples
 
 Create tuple:
@@ -137,6 +151,9 @@ let a: [i32; 5] = [1, 2, 3, 4, 5];    // Set type and length explicitly
 let a = [3; 5];                       // Initialize array of length 5 with 3 in every position.
 
 y = a[2];                             // Access the elements of an array with square brackets
+let n = a.len();                      // Get the length of an array
+
+calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
 ```
 
 ### Structs
@@ -280,7 +297,7 @@ let y = x;    // Another 3 is separately pushed on the stack, owned by y
 For larger values of unknown size, like strings, stored on the heap:
 
 ```rust
-let s1 = String::from("hello");   // s1 is a reference to the string on the heap
+let s1 = String::from("hello");   // s1 holds a reference to the string on the heap
 let s2 = s1;                      // s1 is 'moved' (shallow copied) to s2.  s2 now owns the string and s1 is invalidated.
 let s3 = s2.clone();              // clone() explicitly makes a deep copy.  Both s2 and s3 are valid
 ```
@@ -313,20 +330,69 @@ fn a_function(a_string: String) -> String {
 }
 ```
 
-### References & Borrowing
+## References & Borrowing
+
+- A reference allows you to refer to a value (borrow it) without taking ownership.
+- A reference’s scope starts from where it is introduced and continues through the last time it is used.
+- The `&` operator denotes a reference:
 
 ```rust
+let s = String::from("hello");
+let len = calc_len(&s);            // Pass reference to String to function.  s is borrowed.
 
+fn calc_len(s: &String) -> usize {  // Define function that takes a reference to a String
+    s.len()
+}
 ```
 
 ### Mutable References
 
-```rust
+- `&mut` denotes a mutable reference.
+- At any given time, you can have _only one mutable reference_ or any number of immutable references.
 
+```rust
+let mut s = String::from("hello");   // A mutable String
+change(&mut s);                      // &s is an mutable reference to s1
+
+fn change(s: &mut String) {   // Defines a function that takes a mutable reference to a String
+  s.push_str(", world");    // Mutate the String
+}
 ```
 
 ### Slices
 
-```rust
+- A _string slice_ is a reference to a substring. It includes a pointer to the first element and the length.
+- It is specified using a _range_ in brackets after the reference to the String: `&s[x..y]`
+- A string slice has its own type: `&str`
 
+```rust
+let s = String::from("hello world");
+let x = &s[6..11];    // x is a string slice.  x = "world".  Characters 6-10
+let x = &s[..5];      // Characters start to 4
+let x = &s[6..]       // Characters 6 to end
+let x = &s[..]        // Whole string
+```
+
+- String literals _are_ string slices
+- A reference to a `String` can be passed directly into a function that takes an `&str`. It will be type-coerced.
+- Try to define string manipulation functions to operate on type `&str`, for maximum generality
+
+```rust
+fn strfun(s: &str) -> &str {   // Define string functions to use type &str
+  // ...
+}
+
+let s = String::from("hello world");  // String
+let lit = "hi there";                 // String literal
+
+let x = strfun(&s[3..5]);    // Can call the function with a slice, &str
+let x = strfun(&s);          // ...or a reference to a String
+let x = strfun(lit);         // ...or a literal
+```
+
+A portion of an array, vector, or other collection can also be referenced with a slice:
+
+```rust
+let a = [1, 2, 3, 4, 5];
+let slice = &a[1..3];   // slice = &[2,3]
 ```
