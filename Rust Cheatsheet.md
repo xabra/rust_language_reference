@@ -186,13 +186,66 @@ A function that instantiates a struct using shorthand syntax and returns the new
 
 ```rust
 fn init_user(name: String, age: i32) -> User {
-    User {
-        name        // Shorthand avoids repeating the parameter "name: name"
-        age: age    // or the verbose way
-    }
+  User {      // Final expression in the function returns User
+    name        // Shorthand avoids repeating the parameter "name: name"
+    age: age    // or the verbose way
+  }
 }
 
 user1 = init_user("tom", 22);
+```
+
+Struct update syntax creates a new instance from an existing struct. But any fileds stored on the heap will be _moved_ from user1, making user1 unuseable.
+
+```rust
+let user2 = User {
+  name: String::from("alice"),   // Change the name field
+  ..user1                        // ...but copy all other fields from user1
+};
+```
+
+## Methods & Associated Functions
+
+- Associated Functions are functions defined in the context of a struct, enum, or trait.
+- Associated Functions are defined inside an implementation block with keyword `impl`
+- A struct is permitted to have multiple implementation blocks
+
+### Methods
+
+- If the first parameter of the associated function is `&self` or `&mut self`, it is a _method_
+- Methods are associated with an _instance_ of a struct
+- Methods are called using `struct_instance.method()`, where the self parameter is passed implicitly
+
+```rust
+struct Rectangle {    // Define a struct
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {      // Define implementation block
+    fn area(&self) -> u32 { // Define methods.  &self is always the first argument
+        self.width * self.height
+    }
+}
+
+let a = rect1.area(); // Call the method with dot notation.  &self is passed imlicitly
+```
+
+- Associated functions that _do not_ have `&self` as the first parameter are associated with the struct _type_ rather than an _instance_.
+
+- These functions are often used for constructors or helper functions. They are accessed with the namespace operator `struct_type::function()`
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Rectangle {   // &self not passed in...not a method
+        Rectangle {
+            width: size,
+            height: size,
+        }
+    }
+}
+
+let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 ```
 
 ### Enums
@@ -202,9 +255,9 @@ An enum defines a custom type with a discrete set of variants.
 ```rust
 // Define a enum type.
 enum Fruit {        // Enum name is capitalized
-    Apple,          // Variants are also capitalized
-    Orange,
-    Pear,
+  Apple,          // Variants are also capitalized
+  Orange,
+  Pear,
 }
 
 // Access an enum
@@ -361,16 +414,24 @@ fn change(s: &mut String) {   // Defines a function that takes a mutable referen
 
 ### Slices
 
-- A _string slice_ is a reference to a substring. It includes a pointer to the first element and the length.
-- It is specified using a _range_ in brackets after the reference to the String: `&s[x..y]`
-- A string slice has its own type: `&str`
+- A _slice_ is a _reference to part of a collection_ such as a string, array, or vector.
+- It includes a pointer to the first element and a length.
+- It is specified using a _range_ in brackets after the reference to the collection: `&a[x..y]`:
+
+```rust
+let a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+let slice = &a[1..3];   // slice = &[2,3]
+let x = &a[..5];      // Elements up to 4
+let x = &a[6..]       // Elements 6 to end
+let x = &a[..]        // Whole string
+```
+
+- A _string slice_ is a reference to a substring.
+- A string slice has its own special type: `&str`
 
 ```rust
 let s = String::from("hello world");
 let x = &s[6..11];    // x is a string slice.  x = "world".  Characters 6-10
-let x = &s[..5];      // Characters start to 4
-let x = &s[6..]       // Characters 6 to end
-let x = &s[..]        // Whole string
 ```
 
 - String literals _are_ string slices
@@ -388,11 +449,4 @@ let lit = "hi there";                 // String literal
 let x = strfun(&s[3..5]);    // Can call the function with a slice, &str
 let x = strfun(&s);          // ...or a reference to a String
 let x = strfun(lit);         // ...or a literal
-```
-
-A portion of an array, vector, or other collection can also be referenced with a slice:
-
-```rust
-let a = [1, 2, 3, 4, 5];
-let slice = &a[1..3];   // slice = &[2,3]
 ```
