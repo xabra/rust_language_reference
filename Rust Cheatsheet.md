@@ -206,15 +206,17 @@ let user2 = User {
 
 ## Methods & Associated Functions
 
-- Associated Functions are functions defined in the context of a struct, enum, or trait.
+Associated Functions are functions defined in the context of a struct, enum, or trait.
+
 - Associated Functions are defined inside an implementation block with keyword `impl`
-- A struct is permitted to have multiple implementation blocks
+- Multiple implementation blocks are allowed
 
 ### Methods
 
-- If the first parameter of the associated function is `&self` or `&mut self`, it is a _method_
-- Methods are associated with an _instance_ of a struct
-- Methods are called using `struct_instance.method()`, where the self parameter is passed implicitly
+A _method_ is an associated funtion where its first parameter is `&self` or `&mut self`.
+
+- Methods are associated with an _instance_ of a struct, enum or trait.
+- Methods are called using `struct_instance.method()`. The self parameter is passed implicitly
 
 ```rust
 struct Rectangle {    // Define a struct
@@ -253,15 +255,55 @@ let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 An enum defines a custom type with a discrete set of variants.
 
 ```rust
-// Define a enum type.
+// Define a Fruit enum type.
 enum Fruit {        // Enum name is capitalized
   Apple,          // Variants are also capitalized
   Orange,
   Pear,
 }
 
-// Access an enum
-let snack = Fruit::Orange;  // Orange is namespaced to Fruit
+// Instantiate a  variable of type Fruit
+let snack = Fruit::Orange;  // Orange has type Fruit, value Orange.  It is namespaced to Fruit
+```
+
+Each variant of an enum can have data of any type associated with it:
+
+```rust
+// Define a Message type and variants
+enum Message {
+    Quit,                         // No data
+    Move { x: i32, y: i32 },      // key-value struct.  Note BRACES, not parens
+    Write(String),                // String argument
+    ChangeColor(i32, i32, i32),   // i32 arguments
+}
+
+//  Instantiate 3 Messages
+let m1 = Message::Quit;
+let m2 = Message::Move { x: 3, y: 6 };
+let m3 = Message::Write(String::from("Wrote"));
+```
+
+The `match` flow control operator (below) is used for switching flow based on the value of an enum and its associated data, as well as for extracting associated data from an enum.
+
+### Option\<T> Enum
+
+The Option type is an enum that encodes the common scenario in which a value could be something or it could be nothing.
+
+- Forces the programmer to explicitly handle the case where a value is None, in contrast to 'null'
+- Option namespace is brought in in the rust prelude.
+- Option<T> is a distinct type, for each type T
+
+```rust
+enum Option<T> {
+    None,
+    Some(T),
+}
+```
+
+```rust
+let x = Option::Some(i32);  // No need to use Option namespace explicitly..
+let y = Some(i32);          // this works also
+let z = Some(u8);           // y and z are different types. Option<i32> and Option<u8>, respectively
 ```
 
 ## Flow control
@@ -271,19 +313,96 @@ let snack = Fruit::Orange;  // Orange is namespaced to Fruit
 No parentheses are required around the conditional, but braces are required around each block.
 
 ```rust
-    if n < 0 {
-        // Do something
-    } else if n > 0 {
-        // Do something
-    } else {
-        // Do something
-    }
+if n < 0 {
+    // Do something
+} else if n > 0 {
+    // Do something
+} else {
+    // Do something
+}
 ```
 
-An if-else statement is an expression which returns the value of any expression in the matching arm.
+An if-else statement is an _expression_ which returns the value of any expression in the matching arm.
 
 ```rust
-    let x = if p > 0 {2*p} else {0}   // Similar to the ternary operator in C
+let x = if p > 0 {2*p} else {0}   // Similar to the ternary operator in C
+```
+
+### Match
+
+A `match` expression compares a value against a series of patterns and then executes code based on which pattern matches.
+
+- Matches are exhaustive. Every case must be handled explicitly
+- The first arm to match is the one that gets executed
+- Variables can be used to match a pattern. A match will bind the value to that variable
+- The \_ catchall can be used to disregard all other cases
+
+```rust
+#[derive(Debug)] // so we can inspect the state below
+enum UsState {    // Enum of US States
+    Alabama,
+    Alaska,
+    // --snip--
+}
+
+enum Coin {       // Enum of Coin type
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),   // Quarters have an associated UsState enum attached.
+}
+
+let my_coin = Coin::Quarter(UsState::Alaska);    // Define a coin
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {        // Block in braces is executed
+          println!("Lucky penny!"); // Print something
+          1                         // Returns a value of 1
+        },
+        Coin::Nickel => 5,          // Returns a value of 5
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}!", state);  // Extracts the value of UsState
+            25                      // and returns 25
+        },
+    }
+}
+```
+
+### Matching Option\<T>
+
+```rust
+fn plus_one(x: Option<i32>) -> Option<i32> {    // Function takes and returns Option<i32>
+    match x {
+        None => None,             // Handle the case of None
+        Some(i) => Some(i + 1),   // Handle the case of Some()
+    }
+}
+
+let x = plus_one(Some(5));    // x = Some(6)
+let x = plus_one(None);       // x = None
+```
+
+### if let
+
+For simple cases where there is either a single match or not, the `if-let` expression can be used. It does what `match` does but slightly less verbose
+
+```rust
+if let Coin::Quarter(state) = coin {    // Try to match coin with Coin::Quarter(state)...
+    println!("State quarter from {:?}!", state);    // Success, bind state
+} else {
+    count += 1;   // otherwise
+}
+```
+
+`if let` is useful for 'unwrapping' Option\<T>
+
+```rust
+let result = Some(567 i32);     // Result is an Option<i32>
+if let Some(value) = result {   // If it matches Some, bind value
+    value   // Return value
+}   // Otherwise return ()
 ```
 
 ### Infinite loop
