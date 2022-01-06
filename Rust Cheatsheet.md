@@ -572,6 +572,8 @@ let x = strfun(lit);         // ...or a literal
 
 ## Module System
 
+packages, crate, modules...
+
 ## Collections
 
 ### Vector
@@ -659,3 +661,5 @@ let x = result.expect("My error message");    // Same as unwrap, but includes a 
 ```
 
 ## Generics
+
+## Code Testing
