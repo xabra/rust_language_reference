@@ -569,3 +569,93 @@ let x = strfun(&s[3..5]);    // Can call the function with a slice, &str
 let x = strfun(&s);          // ...or a reference to a String
 let x = strfun(lit);         // ...or a literal
 ```
+
+## Module System
+
+## Collections
+
+### Vector
+
+### String
+
+### HashMap
+
+## Error Handling
+
+When Rust encounters a non-recoverable error, it is said to 'panic'. You can call the macro `panic!` to halt the program and unwind the stack.
+
+```rust
+panic!("My error message");
+```
+
+Functions that can have an error should return a _Result_ enum which encapsulates both a successful result and an error. Result enums are brought into scope by the Rust prelude, so `Ok()` and `Err()` can be used directly without writing `Result::Ok()` or `Result::Err()` namespacing
+
+```rust
+enum Result<T, E> {
+    Ok(T),      // No error, Ok contains the value
+    Err(E),     // Error, Err contains an error type
+}
+```
+
+### Propagate Errors
+
+To propagate errors up to the caller function, return a `Result<T,E>`. Use `match` or `if` statements to handle the two cases and return Ok() or Err() accordingly:
+
+```rust
+fn my_function() -> Result<My_Ok_Type, My_Error_Type> {
+    //...snip
+    if has_error return Err(e);   // e: My_Error_Type
+    Ok(val)                      // Otherwise return Ok(). val: My_Ok_Type
+}
+```
+
+Alternately, use `match`
+
+```rust
+fn caller_function() -> Result<T,E> {
+    let val = match called_function() {
+        Ok(val) => val,             // If Ok(), unwrap the value
+        Err(e) => return Err(e),    // If Err(), return immediately with Err()
+    };
+    //...do something with val here
+}
+```
+
+### The ? Operator
+
+The `?` operator is applied to a `Result`. It is a shortcut for propagating errors.
+
+- If the Result is Ok, its value will be unwrapped and execution will continue
+- If the Result is Err, the error will be cast to the error type of the caller, and the caller will immediately return the Err() in its Result.
+
+```rust
+fn caller_function() -> Result<T,E>{
+  let val = called_function()?;   // ? operator unwraps the Ok value, or forces caller_function to return the Err()
+  // Do something with val here...
+}
+```
+
+The ? operator can also be chained: ` let x = fn1()?.fn2()?;`
+
+### Panic-on-Error
+
+To handle a Result by panicking, one can use `match`:
+
+```rust
+let result = fn_returns_result();   // A function returns a Result enum
+
+let x = match result {
+    Ok(v) => v,          // If no error -> return v, binding v to x
+    Err(error) => panic!("Problem: {:?}", error),  // If error -> panic
+};
+```
+
+Or use these shorthand methods:
+
+```rust
+let x = result.unwrap();      // Binds an Ok value to x or panicks if Err
+... or ...
+let x = result.expect("My error message");    // Same as unwrap, but includes a custom error message
+```
+
+## Generics
