@@ -663,3 +663,88 @@ let x = result.expect("My error message");    // Same as unwrap, but includes a 
 ## Generics
 
 ## Code Testing
+
+Tests have the following form:
+
+```rust
+use whatever    // Bring into scope anything needed in the test
+
+#[test]         // Define this function as a test
+fn test1() {    // Define a test function with descriptive test name
+    ...
+    assert_eq!(a,b);    // Test assertion.  If true, the test passes
+}
+```
+
+Other assertion macros:
+
+```rust
+assert!(boolean);   // Assert the boolean is true
+assert_eq!(a,b);    // Assert a==b
+assert_ne!(a,b);    // Assert a!=b
+assert_eq!(a,b,"Result was {}", a_variable);  // Include an error message and data.
+```
+
+Or test for an expected panic with annotation `#[should_panic]`:
+
+```rust
+#[test]         // Define test
+#[should_panic] // Use should_panic directive to mark tests that are expected to panic
+fn check_for_panic() {
+    // -- snip
+}
+```
+
+Or return a _Result_ enum from a test and fail if there is an Err():
+
+```rust
+#[test]
+fn return_a_result() -> Result<(), String> {
+    if 2 + 2 == 4 {
+        Ok(())    // Will pass test
+    } else {
+        Err(String::from("two plus two does not equal four")) // WIll fail test
+    }
+}
+```
+
+### Unit Tests
+
+- _Unit_ tests go in the same file as the code they are testing.
+- They need the annotation `#[cfg(test)]` to tell the compiler to compile the tests only if it is running `cargo test`
+- They also need to the main code brought in scope with `use super::*;`
+- When rust creates a new library with `cargo new my_library --lib`, it will automatically place a template for _unit_ tests at the bottom of the source file
+
+```rust
+//-- Source code goes here...
+
+#[cfg(test)]    // tells compiler to only compile this module if running 'cargo test'
+mod tests {     // This is the test module
+    use super::*;   // Bring library code above into scope of this module
+
+    #[test]          // Tests go here...
+    fn unit_test1() {
+        ...
+    }
+}
+```
+
+### Integration Tests
+
+- Put integration test files in a directory named _tests_, located in the project folder at the same level as the _src_ directory.
+- There is no need for the annotation `#[cfg(test)]` or `use super::*;`
+
+```rust
+use whatever;   // Bring
+
+#[test]          // Tests go here...
+fn integration_test1() {
+    ...
+}
+```
+
+### Running Tests
+
+- Run all tests with `cargo test`
+- Run a test with a specific name with `cargo test my_test`
+- Run tests on a single thread to prevent interactions `cargo test -- --test-threads=1`
