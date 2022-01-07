@@ -138,7 +138,7 @@ Access elements of tuple:
 
 ```rust
 let (x, y, z) = a_tuple;       // Access elements with destructuring
-let q = a_tuple.1;             // or with dot notation
+let q = a_tuple.1;             // or with dot notation.  Zero-based
 ```
 
 ### Arrays
@@ -384,7 +384,7 @@ let x = plus_one(Some(5));    // x = Some(6)
 let x = plus_one(None);       // x = None
 ```
 
-### if let
+### if-let
 
 For simple cases where there is either a single match or not, the `if-let` expression can be used. It does what `match` does but slightly less verbose
 
@@ -578,9 +578,70 @@ packages, crate, modules...
 
 ### Vector
 
-### String
+```rust
+// Initializing:
+let v: Vec<i32> = Vec::new();    // Create a new vector with explicitly typed elements
+let v = Vec::from([1, 2, 3, 4]); // Create a new vector from a literal
+let v = vec![1, 2, 3, 4];           // Create a new vector from literals with inferred types, using vec! macro
+
+// Accessing:
+let x = v[3];                    // Get a reference to element 3.  Panic if out of range
+let o = v.get(3);                // Returns an Option with a reference to an element, or None() if out of bounds
+let o = v.get(1..2);             // Returns an Option with a reference to a slice, or None() if out of bounds
+let o = v.get(1..2);             // Returns an Option with a reference to a slice, or None() if out of bounds
+
+// Mutating:
+v.push(5);                       // Push an element on the end of a vector
+let an_option = v.pop();         // Pops last element and returns an Option to the value popped
+```
+
+### Strings
+
+- Strings are UTF-8 encoded. Individual unicode scalars may correspond to multiple bytes in memory.
+- Rust does not allow you to index into a string using []
+
+```rust
+// Create new strings
+let mut s = String::new();                // Create a new empty String
+let s = "A String Literal".to_string();   // Convert a string literal to a String
+let s = String::from("A String Literal"); //  Create a String from a string literal
+
+// Modify strings
+s.push_str(&str);        // Append &str to s
+s.push('c');             // Append a single character to s
+let s = s1 + &s2;       // Concatenate s2 onto s1.  s3 now owns s1
+let s = format!("{}-{}-{}", s1, s2, s3);  // Or use the format! macro and a template to concatenate
+
+// Get length in bytes
+let n = s.len();      // Bytes, not UTF-8 scalars
+
+// Iterating over strings
+for c in s.chars() {    // s.chars is an iterator over the utf-8 scalars
+    ...
+}
+
+for b in s.bytes() {    // s.bytes() is an iterator over the bytes
+    ...
+}
+```
 
 ### HashMap
+
+- Hash Maps store a collection of key-value pairs. Hash Maps are not part of the rust prelude.
+
+```rust
+use std::collections::HashMap;    // Bring into scope
+
+let mut hm = HashMap::new();            // Create a new mutable hash map
+hm.insert(key, value);                  // Insert a key-value pair
+let value = hm.get(&key);               // Returns an Option holding the value corresponding to the key, or None().
+```
+
+If a key already exists in the hash map, `insert` will overwrite it. To only insert an entry if it does not already exist, use the following:
+
+```rust
+hm.entry(key).or_insert(value);   // Returns a mutable reference to the existing value, if it exists, otherwise inserts the new one
+```
 
 ## Error Handling
 
