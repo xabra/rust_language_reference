@@ -26,6 +26,8 @@ $ cargo check               // Check for compilation without executable
 /// Triple slashes are for documentation
 ```
 
+<div style="page-break-after: always;"></div>
+
 ## Variable Binding
 
 - Variables should be initialized when they are declared (though its not absolutely required)
@@ -75,6 +77,8 @@ Constants are also immutable, but they can have global scope. Their type must be
 ```rust
 const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
 ```
+
+<div style="page-break-after: always;"></div>
 
 ## Functions
 
@@ -502,6 +506,8 @@ fn a_function(a_string: String) -> String {
 }
 ```
 
+<div style="page-break-after: always;"></div>
+
 ## References & Borrowing
 
 - A reference allows you to refer to a value (borrow it) without taking ownership.
@@ -570,9 +576,13 @@ let x = strfun(&s);          // ...or a reference to a String
 let x = strfun(lit);         // ...or a literal
 ```
 
+<div style="page-break-after: always;"></div>
+
 ## Module System
 
 packages, crate, modules...
+
+<div style="page-break-after: always;"></div>
 
 ## Collections
 
@@ -595,7 +605,7 @@ v.push(5);                       // Push an element on the end of a vector
 let an_option = v.pop();         // Pops last element and returns an Option to the value popped
 ```
 
-### Strings
+### String
 
 - Strings are UTF-8 encoded. Individual unicode scalars may correspond to multiple bytes in memory.
 - Rust does not allow you to index into a string using []
@@ -642,6 +652,8 @@ If a key already exists in the hash map, `insert` will overwrite it. To only ins
 ```rust
 hm.entry(key).or_insert(value);   // Returns a mutable reference to the existing value, if it exists, otherwise inserts the new one
 ```
+
+<div style="page-break-after: always;"></div>
 
 ## Error Handling
 
@@ -721,7 +733,11 @@ let x = result.unwrap();      // Binds an Ok value to x or panicks if Err
 let x = result.expect("My error message");    // Same as unwrap, but includes a custom error message
 ```
 
+<div style="page-break-after: always;"></div>
+
 ## Generics
+
+<div style="page-break-after: always;"></div>
 
 ## Code Testing
 
