@@ -119,7 +119,7 @@ Rust is strongly typed. Types are determined at compile-time but may be set expl
 | Character        | `char`                           | A 4-byte unicode character eg. `let c = 'z'`;                              |
 | Unit Type        | `() `                            | value = `()` empty tuple                                                   |
 
-### Casting Types
+### Casting
 
 Types may be explicitly cast using the `as` keyword
 
@@ -736,6 +736,64 @@ let x = result.expect("My error message");    // Same as unwrap, but includes a 
 <div style="page-break-after: always;"></div>
 
 ## Generics
+
+Generics are used to create abstract, type-independent definitions for items like functions, structs, enums, and methods.
+
+```Rust
+fn my_function<T> (param1: T, param2: U) ->  T {   // Generic function with different parameter types
+  ...
+}
+
+struct Point<T> {     // Generic struct
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {    // Generic method
+    ...
+}
+
+enum Result<T, E> {   // Generic enum
+    Ok(T),
+    Err(E),
+}
+
+```
+
+## Traits
+
+## Lifetimes
+
+## Closures
+
+A closure is an anonymous function you can save in a variable or pass as an argument to other functions.
+
+- Closures do not require explicit typing of parameters and return values since they can often be inferred
+- Closures can capture their environment and access variables from the scope in which they’re defined.
+
+```rust
+let my_closure = |param1, param2| {     // Define a closure
+    // do something here...
+    result // return a value
+};
+
+my_closure(x, y)                       // Call the closure
+```
+
+## Iterators
+
+An iterator allows you to perform some task on a sequence of items in turn.
+
+- Iterators are lazy: they have no effect until you call methods that consume the iterator.
+
+```rust
+let v1 = vec![1, 2, 3];   // Define a vector
+
+let mut v1_iter = v1.iter();  // Create a (mutable) iterator on v1
+x = v1_iter.next()            // Returns Some(&val) or None
+```
+
+...... not finished.....
 
 <div style="page-break-after: always;"></div>
 
