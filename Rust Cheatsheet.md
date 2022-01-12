@@ -578,9 +578,104 @@ let x = strfun(lit);         // ...or a literal
 
 <div style="page-break-after: always;"></div>
 
-## Module System
+## Rust Module System
 
-packages, crate, modules...
+### Package
+
+A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that defines the package and describes how to build those crates.
+
+```
+my_project      <-- Package named 'my_project'
+│
+├───Cargo.toml      <-- .toml file
+├───Cargo.lock
+├───src/
+    │
+    ├───main.rs     <-- binary crate called 'my_project' (root)
+    ├───lib.rs      <-- library crate called 'my_project' (root)
+    ├───sub_module.rs
+    └───sub_module/
+        │
+        └───sub_sub_module.rs
+```
+
+### Crates
+
+Crates contain a tree of modules that produces a library or executable. The top-most module in a crate is called 'crate'
+
+```
+crate
+ └── top_module
+     ├── submodule1
+     │   ├── function1
+     │   └── function2
+     └── submodule2
+         ├── function3
+         ├── function4
+         └── function5
+```
+
+### Modules
+
+Modules organize code scope into different namespaces. Modules are defined in the code using the `mod` keyword, folllowed by the module name and a code block in braces.
+
+```rust
+mod top_module {
+    mod submodule1 {            // Private module
+        ... // functions, structs, enums etc
+    }
+    pub mod submodule2 {        // Public module
+        ... // functions, structs, enums etc
+    }
+}
+```
+
+### Modules Across Multiple Files
+
+To separate modules into different files, use a semicolon after the module name, rather than a block. This tells Rust to load the contents of the module from another file under '/src' having the same name as the module.
+
+```rust
+pub mod my_module;      // Load module 'my_module' from 'src/my_module.rs'
+```
+
+### Paths
+
+Paths are way of naming an item, such as a struct, function, or module
+
+- An _absolute_ path starts from a crate root by using its _crate name_ or the literal `crate`.
+- A _relative_ path starts from the current module and uses `self`, `super`, or an identifier in the current module.
+
+```rust
+crate::main_module::submodule1::function1();        // Absolute path referring to the current crate
+
+main_module::submodule1::function1();               // Relative path
+
+super::submodule1::function1();                     // Refer up one level
+
+self::submodule1::function1();                      // Refer to the current level
+```
+
+### Privacy
+
+- All items (functions, methods, structs, enums, modules, and constants) are private by default.
+- Items in a parent module can’t use private items inside child modules.
+- Items in child modules _can_ use private items in their ancestor modules and their sibling modules
+
+### Make Items Public with `pub`
+
+- Use the `pub` keyword to mark items public.
+- Making a module public doesn’t make its contents public. Use `pub` on the contents if needed.
+- Individual elements of a struct must be made public for them to be visible
+
+### Bring Items Into Scope with `use`
+
+```rust
+use rand::Rng;                  // Bring external dependencies defined in Cargo.toml into scope
+use main::MyType as MyAlias;    // Create an alias to prevent namespace conflicts using 'as' keyword
+use main::{self, sub1::sub_sub, sub2};   // Nested paths make 'use' statements more concise
+use main::sub::*;               // Glob operator (*) brings everything in scope
+pub use crate::main::sub;       // Re-export a name with 'pub use', making available to others
+```
 
 <div style="page-break-after: always;"></div>
 
@@ -761,6 +856,32 @@ enum Result<T, E> {   // Generic enum
 ```
 
 ## Traits
+
+Traits define behavior shared between different types, similar to an _interface_
+
+- One can implement a trait on a type only if either the trait or the type is local to the implementation crate
+
+```rust
+pub trait MyTrait {     // Define a trait
+    fn method1(&self) -> String;   // List signatures of the methods needed to implement this trait for each type
+    fn method2(&self);
+}
+
+pub struct MyStruct {       // Define a type or use an existing type
+    ...
+}
+
+impl MyTrait for MyStruct {     // Implement the trait for the type
+    fn method1(&self) -> String {       // Methods go here
+        ...
+    }
+    fn method2(&self) {
+        ...
+    }
+}
+
+my_struct.method2()     // Call the trait like any other method
+```
 
 ## Lifetimes
 
