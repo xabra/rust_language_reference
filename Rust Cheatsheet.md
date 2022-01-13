@@ -832,7 +832,7 @@ let x = result.expect("My error message");    // Same as unwrap, but includes a 
 
 ## Generics
 
-Generics are used to create abstract, type-independent definitions for items like functions, structs, enums, and methods.
+Generics are used to create abstract, type-independent code for items like functions, structs, enums, and methods.
 
 ```Rust
 fn my_function<T> (param1: T, param2: U) ->  T {   // Generic function with different parameter types
@@ -855,23 +855,28 @@ enum Result<T, E> {   // Generic enum
 
 ```
 
-## Traits
+## Traits & Trait Bounds
 
 Traits define behavior shared between different types, similar to an _interface_
 
-- One can implement a trait on a type only if either the trait or the type is local to the implementation crate
+- Either the trait or the type must be local to the implementation crate
 
 ```rust
-pub trait MyTrait {     // Define a trait
-    fn method1(&self) -> String;   // List signatures of the methods needed to implement this trait for each type
-    fn method2(&self);
+// Define a trait
+pub trait MyTrait {
+    fn method1(&self) -> String;   // provide a method signature for each type
+    fn method2(&self) {            // Optionally provide a default implementation
+        ...
+    }
 }
 
-pub struct MyStruct {       // Define a type or use an existing type
+// Define a type or use an existing type
+pub struct MyStruct {
     ...
 }
 
-impl MyTrait for MyStruct {     // Implement the trait for the type
+// Implement the trait for the type
+impl MyTrait for MyStruct {
     fn method1(&self) -> String {       // Methods go here
         ...
     }
@@ -880,10 +885,46 @@ impl MyTrait for MyStruct {     // Implement the trait for the type
     }
 }
 
-my_struct.method2()     // Call the trait like any other method
+// Call the trait like any other method
+my_struct.method2()
+```
+
+Traits can be function parameters:
+
+```rust
+pub fn my_function(item: &impl MyTrait) { ... }   // Take a reference to item that implements MyTrait
+
+pub fn my_function<T: MyTrait>(item: &T) { ... }  // This 'trait-bound' syntax is equivalent, without the sugar
+```
+
+Functions can return a trait:
+
+```rust
+fn returns_trait() -> impl MyTrait { ... }
 ```
 
 ## Lifetimes
+
+- Every _reference_ in Rust has a lifetime, which is the scope for which that reference is valid.
+- Most of the time, lifetimes are implicit and inferred, but sometimes they need to be made explicit for the _borrow checker_
+
+- Generic lifetime parameters define the relationship between references so the borrow checker can perform its analysis
+
+### Lifetime Annotation Syntax
+
+```rust
+&i32        // a reference
+&'a i32     // a reference with an explicit lifetime of 'a
+&'a mut i32 // a mutable reference with an explicit lifetime of 'a
+
+// Function parameter lifetimes
+fn my_function<'a>(x: &'a str, y: &'a str) -> &'a str {...}
+
+// Struct lifetimes
+struct My_Struct<'a> {
+    part: &'a str,
+}
+```
 
 ## Closures
 
