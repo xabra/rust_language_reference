@@ -5,13 +5,18 @@
 Cargo is Rust's build system and package manager. `cargo build` will invoke the Rust compiler, _rustc_
 
 ```rust
-$ cargo new my_project      // Create a new project inside my_project directory
+$ cargo new my_project      // Create a new binary project inside my_project directory
+$ cargo new --lib my_lib    // ...or create a new library project inside my_lib directory
 $ cd my_project               // change to the project directory
+...
+
 ...
 $ cargo build               // Compile and build executable
 $ cargo build --release     // Compile and build executable to release
 $ cargo run                 // Compile build and run
 $ cargo check               // Check for compilation without executable
+$ cargo install cargo-modules   // install cargo module analyzer
+$ cargo modules generate tree --with-types   // Generate a module tree
 ```
 
 ## Comments
@@ -22,8 +27,14 @@ $ cargo check               // Check for compilation without executable
 /*
     Block comments also work, but should generally be avoided
 */
+```
 
-/// Triple slashes are for documentation
+## Documentation
+
+```rust
+/// Three slashes denotes a documentation comment.
+/// Doc comments must go BEFORE the item being commented.
+/// Doc comments support markdown
 ```
 
 <div style="page-break-after: always;"></div>
