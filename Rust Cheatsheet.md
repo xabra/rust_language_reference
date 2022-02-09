@@ -778,12 +778,12 @@ enum Result<T, E> {
 }
 ```
 
-### Propagate Errors
+### Propagate Errors Up
 
 To propagate errors up to the caller function, return a `Result<T,E>`. Use `match` or `if` statements to handle the two cases and return Ok() or Err() accordingly:
 
 ```rust
-fn my_function() -> Result<My_Ok_Type, My_Error_Type> {
+fn caller_function() -> Result<My_Ok_Type, My_Error_Type> {
     //...snip
     if has_error return Err(e);   // e: My_Error_Type
     Ok(val)                      // Otherwise return Ok(). val: My_Ok_Type
@@ -794,29 +794,22 @@ Alternately, use `match`
 
 ```rust
 fn caller_function() -> Result<T,E> {
-    let val = match called_function() {
+    let x = match called_function() {
         Ok(val) => val,             // If Ok(), unwrap the value
         Err(e) => return Err(e),    // If Err(), return immediately with Err()
     };
-    //...do something with val here
+    //... use x here...
 }
 ```
 
-### The ? Operator
-
-The `?` operator is applied to a `Result`. It is a shortcut for propagating errors.
-
-- If the Result is Ok, its value will be unwrapped and execution will continue
-- If the Result is Err, the error will be cast to the error type of the caller, and the caller will immediately return the Err() in its Result.
+Or, append the `?` operator to a Result. If the Result is Err, the error will be cast to the error type of the _caller_ function which will immediately return the Err() in _its_ Result. Otherwise the Ok value will be unwrapped and execution will continue. The ? operator can also be chained: ` let x = fn1()?.fn2()?;`
 
 ```rust
-fn caller_function() -> Result<T,E>{
-  let val = called_function()?;   // ? operator unwraps the Ok value, or forces caller_function to return the Err()
-  // Do something with val here...
+fn caller_function() -> Result<T,E> {
+  let x = called_function()?;   // Unwrap the Ok value, or force caller to return Err()
+  // ... use x here...
 }
 ```
-
-The ? operator can also be chained: ` let x = fn1()?.fn2()?;`
 
 ### Panic-on-Error
 
@@ -835,8 +828,17 @@ Or use these shorthand methods:
 
 ```rust
 let x = result.unwrap();      // Binds an Ok value to x or panicks if Err
-... or ...
+    //... or ...
 let x = result.expect("My error message");    // Same as unwrap, but includes a custom error message
+```
+
+### Test a Result
+
+To check if a Result is an Err or Ok, for example inside an assertion, use:
+
+```rust
+my_result.is_ok()       // Returns boolean
+my_result.is_err()      // Returns boolean
 ```
 
 <div style="page-break-after: always;"></div>
