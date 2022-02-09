@@ -302,11 +302,7 @@ The `match` flow control operator (below) is used for switching flow based on th
 
 ### Option\<T> Enum
 
-The Option type is an enum that encodes the common scenario in which a value could be something or it could be nothing.
-
-- Forces the programmer to explicitly handle the case where a value is None, in contrast to 'null'
-- Option namespace is brought in in the rust prelude.
-- Option<T> is a distinct type, for each type T
+The Option type is an enum that encodes when result could be something or nothing. The Option namespace is brought in in the rust prelude.
 
 ```rust
 enum Option<T> {
@@ -316,9 +312,13 @@ enum Option<T> {
 ```
 
 ```rust
-let x = Option::Some(i32);  // No need to use Option namespace explicitly..
-let y = Some(i32);          // this works also
-let z = Some(u8);           // y and z are different types. Option<i32> and Option<u8>, respectively
+// Use an Option type
+let x = Some(val);
+let y = None();
+
+// Test an Option type
+x.is_some()     // Returns boolean
+x.is_none()     // Returns boolean
 ```
 
 ## Flow control
