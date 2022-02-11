@@ -17,6 +17,7 @@ $ cargo run                 // Compile build and run
 $ cargo check               // Check for compilation without executable
 $ cargo install cargo-modules   // install cargo module analyzer
 $ cargo modules generate tree --with-types   // Generate a module tree
+$ cargo doc                 // Generate documentation in target/doc/{crate name}/all.html
 ```
 
 ## Comments
@@ -29,13 +30,20 @@ $ cargo modules generate tree --with-types   // Generate a module tree
 */
 ```
 
-## Documentation
+## Documentation Comments
 
-```rust
-/// Three slashes denotes a documentation comment.
-/// Doc comments must go BEFORE the item being commented.
-/// Doc comments support markdown
-```
+````rust
+/// This is an OUTER doc comment.
+/// Outer doc comments go BEFORE (outside) the item being commented, such as structs and functions
+
+//! This is an INNER doc comment.
+//! Inner doc comments go AFTER (inside) the item being documented, and are typically used for the main page of a crate.
+
+/// Doc comments support markdown, eg:
+/// # Heading
+/// `code inline`
+/// ``` code block```
+````
 
 <div style="page-break-after: always;"></div>
 
@@ -1056,5 +1064,6 @@ fn integration_test1() {
 ### Running Tests
 
 - Run all tests with `cargo test`
+- Print output will be suppressed on _successful_ tests, unless you run `cargo test -- --nocapture`
 - Run a test with a specific name with `cargo test my_test`
 - Run tests on a single thread to prevent interactions `cargo test -- --test-threads=1`
