@@ -1,6 +1,6 @@
 # Rust Cheat Sheet
 
-## Create and Run Project
+## Cargo: Create and Run a Project
 
 Cargo is Rust's build system and package manager. `cargo build` will invoke the Rust compiler, _rustc_
 
@@ -45,7 +45,234 @@ $ cargo doc                 // Generate documentation in target/doc/{crate name}
 /// ``` code block```
 ````
 
+# Printing
+
+## Print Marcros
+
+```rust
+print!();                // Print to io::stdout
+println!();              // Print to io::stdout with newline
+eprint!();              // Print to io::stderr
+eprintln!();
+let s: String = format!();  // Print to a string
+```
+
+## Format Strings
+
+```rust
+println!("Test {}", x);  // Must implement fmt::Display trait
+println!("{:?}", x);     // Debug Print struct with {:?} format.
+println!("{:b}", x);     // Binary: 1000101001
+println!("{:o}", x);     // Octal: 207454
+println!("{:x}", x);     // Hex (lowercase): 10f2c
+println!("{:X}", x);     // Hex (uppercase): 10F2C
+println!("{:.3}", x);    // Print x to 3 decimal places precision
+println!("{1}, {0}", "A", "B"); // Positional arguments -> Bob, Alice
+println!("{subject} {verb}", subject = "Alice", verb = "jumped");  // Named arguments
+
+let z: f64 = 1.0;
+println!("{z}");         // Print variables
+println!("{number:>5}", number=3);   // Right align in width 5
+println!("{number:0>5}", number=3);  // Pad left hand side with zeroes -> 00003
+```
+
+## Implementing the Debug Trait
+
+```rust
+#[derive(Debug)]    // auto-implement Debug trait for any type
+struct MyStruct(i32) {};
+```
+
+## Implementing the Display trait
+
+```rust
+use std::fmt; // Import `fmt`
+
+struct Point2D {
+    x: f64,
+    y: f64,
+}
+
+// implement `Display` for `Point2D`
+impl fmt::Display for Point2D {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Customize so only `x` and `y` are denoted.
+        write!(f, "x: {}, y: {}", self.x, self.y)
+    }
+}
+```
+
 <div style="page-break-after: always;"></div>
+
+# Primitive Types
+
+Rust is strongly typed. Types are determined at compile-time but may be set explicitly or implicitly.
+
+## Scalar Types
+
+| Type             | Type specifier                   | Note                                                                       |
+| ---------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| Signed integer   | `i8, i16, i32, i64, i128, isize` | Default integer is `i32`. Type `isize` is architecture defined signed int. |
+| Unsigned integer | `u8, u16, u32, u64, u128, usize` | Type `usize` is architecture defined uint.                                 |
+| Float            | `f32, f64`                       | default is `f64`                                                           |
+| Boolean          | `bool`                           | `true` or `false`                                                          |
+| Character        | `char`                           | A 4-byte unicode character eg. `let c = 'z'`;                              |
+| Unit Type        | `() `                            | value = `()` empty tuple                                                   |
+
+## Literals
+
+The base is denoted with a lower case character. Underscore \_ is ignored and may be used to make long numbers more readable. The type may be specified explicitly, eg. `25u16`
+
+| Type           | Example                |
+| -------------- | ---------------------- |
+| Float          | `2.0`, `2f64`, `2_f64` |
+| Decimal        | `34678` or `34_678`    |
+| Hex            | `0xFF`                 |
+| Octal          | `0o77`                 |
+| Binary         | `0b1111_0000`          |
+| Byte (u8 only) | `b'A' `                |
+
+## Type Casting
+
+Types may be explicitly cast using the `as` keyword
+
+```rust
+let d = 200 as f64    // d will be f64
+```
+
+When casting from float to int the `as` keyword performs a _saturating cast_. If the floating point value exceeds the upper bound or is less than the lower bound, the returned value will be equal to the bound crossed.
+
+## Tuples
+
+Create tuple:
+
+```rust
+let a_tuple = (500, 6.4, 1);                  // with types set implicitly
+let b_tuple: (i32, f64, u8) = (400, 3.4, 1);  // with types set explicitly
+```
+
+Access elements of tuple:
+
+```rust
+let (x, y, z) = a_tuple;       // By destructuring
+let q = a_tuple.1;             // Using dot notation.  Zero-based
+```
+
+## Arrays
+
+Arrays are fixed-length at run-time and contain only one type.
+
+```rust
+let a = [1, 2, 3, 4, 5];              // Create an array
+let a: [i32; 5] = [1, 2, 3, 4, 5];    // Set type and length explicitly
+let a = [3; 5];                       // Initialize array of length 5 with 3 in every position.
+
+y = a[2];                             // Access the elements of an array with square brackets
+let n = a.len();                      // Get the length of an array
+
+calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
+```
+
+# Custom Types
+
+## Const
+
+- Constants are immutable.
+- Can be declared in any scope, including global.
+- Type must be declared explicity. The naming convention is to use all caps.
+- The const is inlined in the code with the value at compile time. It has no address.
+
+```rust
+const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
+```
+
+## Static
+
+- Statics are similar to consts but are actual variables. They can also be mutable, but it is unsafe.
+- Typically used for mutable global variables
+- Have `'static` lifetime implicitly
+
+```rust
+static SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
+```
+
+## Struct
+
+```rust
+struct User {         // Define a struct.  Upper camel case
+    name: String,     // Define fields and their types.  Use snake_case
+    age: i32,
+}
+
+let mut user1 = User {               // Instantiate a  struct
+    name: String::from("John"),
+    age: 35,
+};
+
+user1.name = String::from("bob");   // Access fields of a struct
+```
+
+A function that instantiates a struct using shorthand syntax and returns the new struct
+
+```rust
+fn init_user(name: String, age: i32) -> User {
+  User {      // Final expression in the function returns User
+    name        // Shorthand avoids repeating the parameter "name: name"
+    age: age    // or the verbose way
+  }
+}
+
+user1 = init_user("tom", 22);
+```
+
+Struct update syntax creates a new instance from an existing struct. But any fields stored on the heap will be _moved_ from user1, making user1 unuseable.
+
+```rust
+let user2 = User {
+  name: String::from("alice"),   // Change the name field
+  ..user1                        // ...but copy all other fields from user1
+};
+```
+
+## Tuple Struct
+
+Tuple structs are essentally named tuples.
+
+```rust
+struct Pair(i32, f32);              // Define a tuple struct type
+let pair = Pair(1, 0.1);            // Instantiate a tuple struct
+let Pair(integer, decimal) = pair;  // Destructure a tuple struct
+let x = pair.0;                     // Access individual tuple struct elements
+```
+
+## Enum
+
+Defines a type by enumerating its possible variants
+
+```rust
+enum Coin {     // Define enum
+    Penny,
+    Nickle,
+    Dime,
+    Quarter,
+}
+
+let coin = Coin::Nickle;        // Instantiate
+let i = Coin::Nickle as i32;    // -> 1  Casting a C-like enum to an integer returns this index of the variant
+```
+
+Enums can associate data with each variant
+
+```rust
+enum Message {  // Define enum
+    Quit,                       // No accociated data
+    Move { x: i32, y: i32 },    // Struct-like with named fields
+    Write(String),
+    ChangeColor(i32, i32, i32), // Tuple-like with ordered fields
+}
+
+let message = Message:ChangeColor(34, 56, 78);  // Instantiate
+```
 
 ## Variable Binding
 
@@ -76,27 +303,6 @@ fn main() {
 }
 ```
 
-## Literals
-
-The base is denoted with a lower case character. Underscore \_ is ignored and may be used to make long numbers more readable. The type may be specified explicitly, eg. `25u16`
-
-| Type           | Example                |
-| -------------- | ---------------------- |
-| Float          | `2.0`, `2f64`, `2_f64` |
-| Decimal        | `34678` or `34_678`    |
-| Hex            | `0xFF`                 |
-| Octal          | `0o77`                 |
-| Binary         | `0b1111_0000`          |
-| Byte (u8 only) | `b'A' `                |
-
-## Constants
-
-Constants are also immutable, but they can have global scope. Their type must be declared explicity. The naming convention is to use all caps.
-
-```rust
-const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
-```
-
 <div style="page-break-after: always;"></div>
 
 ## Functions
@@ -121,110 +327,6 @@ fn area(l: f64, w: f64) {  // Parameters with explicit parameter types
 fn area(l: f64, w: f64) -> f64 {  // Return type specified after the arrow ->
   l*w                // Returns value of the last expression, WITH NO SEMICOLON
 }
-```
-
-## Types
-
-Rust is strongly typed. Types are determined at compile-time but may be set explicitly or implicitly.
-
-### Scalar Types
-
-| Type             | Type specifier                   | Note                                                                       |
-| ---------------- | -------------------------------- | -------------------------------------------------------------------------- |
-| Signed integer   | `i8, i16, i32, i64, i128, isize` | Default integer is `i32`. Type `isize` is architecture defined signed int. |
-| Unsigned integer | `u8, u16, u32, u64, u128, usize` | Type `usize` is architecture defined uint.                                 |
-| Float            | `f32, f64`                       | default is `f64`                                                           |
-| Boolean          | `bool`                           | `true` or `false`                                                          |
-| Character        | `char`                           | A 4-byte unicode character eg. `let c = 'z'`;                              |
-| Unit Type        | `() `                            | value = `()` empty tuple                                                   |
-
-### Casting
-
-Types may be explicitly cast using the `as` keyword
-
-```rust
-let d = 200 as f64    // d will be f64
-```
-
-When casting from float to int the `as` keyword performs a _saturating cast_. If the floating point value exceeds the upper bound or is less than the lower bound, the returned value will be equal to the bound crossed.
-
-### Tuples
-
-Create tuple:
-
-```rust
-let a_tuple = (500, 6.4, 1);                  // with types set implicitly
-let b_tuple: (i32, f64, u8) = (400, 3.4, 1);  // with types set explicitly
-```
-
-Access elements of tuple:
-
-```rust
-let (x, y, z) = a_tuple;       // Access elements with destructuring
-let q = a_tuple.1;             // or with dot notation.  Zero-based
-```
-
-### Arrays
-
-Arrays are fixed-length and contain only one type.
-
-```rust
-let a = [1, 2, 3, 4, 5];              // Create an array
-let a: [i32; 5] = [1, 2, 3, 4, 5];    // Set type and length explicitly
-let a = [3; 5];                       // Initialize array of length 5 with 3 in every position.
-
-y = a[2];                             // Access the elements of an array with square brackets
-let n = a.len();                      // Get the length of an array
-
-calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
-```
-
-### Structs
-
-Define a struct type
-
-```rust
-struct User {         // Struct name is capitalized
-    name: String,     // Define fields and their types
-    age: i32,
-}
-```
-
-Instantiate a struct
-
-```rust
-let mut user1 = User {
-    name: String::from("John"),
-    age: 35,
-};
-```
-
-Access fields in a struct
-
-```rust
-user1.name = String::from("bob");   // Set an element
-```
-
-A function that instantiates a struct using shorthand syntax and returns the new struct
-
-```rust
-fn init_user(name: String, age: i32) -> User {
-  User {      // Final expression in the function returns User
-    name        // Shorthand avoids repeating the parameter "name: name"
-    age: age    // or the verbose way
-  }
-}
-
-user1 = init_user("tom", 22);
-```
-
-Struct update syntax creates a new instance from an existing struct. But any fileds stored on the heap will be _moved_ from user1, making user1 unuseable.
-
-```rust
-let user2 = User {
-  name: String::from("alice"),   // Change the name field
-  ..user1                        // ...but copy all other fields from user1
-};
 ```
 
 ## Methods & Associated Functions
@@ -851,36 +953,9 @@ my_result.is_err()      // Returns boolean
 
 <div style="page-break-after: always;"></div>
 
-## Generics
+## Traits
 
-Generics are used to create abstract, type-independent code for items like functions, structs, enums, and methods.
-
-```Rust
-fn my_function<T> (param1: T, param2: U) ->  T {   // Generic function with different parameter types
-  ...
-}
-
-struct Point<T> {     // Generic struct
-    x: T,
-    y: T,
-}
-
-impl<T> Point<T> {    // Generic method
-    ...
-}
-
-enum Result<T, E> {   // Generic enum
-    Ok(T),
-    Err(E),
-}
-
-```
-
-## Traits & Trait Bounds
-
-Traits define behavior shared between different types, similar to an _interface_
-
-- Either the trait or the type must be local to the implementation crate
+Traits define behavior shared between different types, similar to an _interface_. A trait is a collection of methods defined for an unknown type: `Self`. Note: either the trait or the type must be local to the implementation crate
 
 ```rust
 // Define a trait
@@ -922,6 +997,63 @@ Functions can return a trait:
 
 ```rust
 fn returns_trait() -> impl MyTrait { ... }
+```
+
+### Derive Attribute
+
+The compiler can provide basic implementations for the following traits via the `#[derive(trait_name)]` attribute:
+
+- `Eq, PartialEq, Ord, PartialOrd` comparison traits
+- `Clone`, to create T from &T via a copy.
+- `Copy`, to give a type 'copy semantics' instead of 'move semantics'.
+- `Hash`, to compute a hash from &T.
+- `Default`, to create an empty instance of a data type.
+- `Debug`, to format a value using the {:?} formatter.
+
+## Generics
+
+Generics are used to create abstract, type-independent code for items like functions, structs, enums, and methods. If the first use of type X is preceeded by <X>, then X is generic.
+
+```Rust
+fn my_function<T, U> (param1: T, param2: U) ->  T {   // Generic function with different parameter types
+  ...
+}
+
+struct Point<T> {     // Generic struct
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {    // Generic implementation
+    //  Functions inside the impl do NOT need <T> after the function name
+    ...
+}
+
+impl Point<f32> {   // Implement an explicit (NON-generic) type
+    ...
+}
+
+enum Result<T, E> {   // Generic enum
+    Ok(T),
+    Err(E),
+}
+
+trait MyTrait<T> {
+    // Define a trait on the
+    fn do_my_trait(self, x: T);
+}
+```
+
+## Trait Bounds
+
+The types over which a generic is defined can be restricted to those types that implement certain traits. These are _trait bounds_
+
+```rust
+// Restrict the generic type 'T' to types that implement traits Display and Debug
+// Multiple bounds are spearated with a '+'
+fn printer<T: Display + Debug>(t: T) {
+    ...
+}
 ```
 
 ## Lifetimes
@@ -1064,6 +1196,15 @@ fn integration_test1() {
 ### Running Tests
 
 - Run all tests with `cargo test`
-- Print output will be suppressed on _successful_ tests, unless you run `cargo test -- --nocapture`
+- Print output will be suppressed on _successful_ tests, unless you run `cargo test -- --show-output`
 - Run a test with a specific name with `cargo test my_test`
 - Run tests on a single thread to prevent interactions `cargo test -- --test-threads=1`
+
+## Common Compiler Attributes
+
+- `#[allow(dead_code)]` - suppresses warnings about unused code
+- `#[test]` - define a test
+- `#[ignore = "not yet implemented"]` - ignore a test
+- `#[should_panic(expected = "values don't match")]` - test is only passed if code actually panics
+- `#[derive(PartialEq, Clone)]` - automatically derive traits
+- `#[inline]` - suggests performing an inline expansion.
