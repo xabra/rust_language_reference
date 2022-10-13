@@ -459,10 +459,44 @@ if let Coin::Quarter(state) = coin {    // Try to match coin with Coin::Quarter(
 `if let` is useful for 'unwrapping' Option\<T>
 
 ```rust
-let result = Some(567 i32);     // Result is an Option<i32>
+let result = Some(567_i32);     // Result is an Option<i32>
 if let Some(value) = result {   // If it matches Some, bind value
     value   // Return value
 }   // Otherwise return ()
+```
+
+## Destructuring in match
+
+A match block can destructure tuples, arrays, slices, enums and structs
+
+```rust
+// Tuple destructuring
+my_tuple  = (0, -2, 3);
+match my_tuple {
+    (0, y, z) => //match 0, bind y, z,
+    (1, ..)  => // match 1 in first position, ignore the rest,
+    (.., 2)  => // match 2 in last position, ignore the rest
+    (3, .., 4)  =>  // match first and last position, ignore others
+    ...
+}
+
+// Array destructuring is similar
+let a = [1, -2, 6];
+match a {
+    [0, x1, x2] =>   // Match a[0]==0, bind the others
+    [1, _, x2] => // match a[0]==1, ignore a[1], bind a[2]
+    [-1, x1, ..] => match a[0]==-1, bind a[1], ignore the rest
+    ...
+}
+
+// Struct destructuring is similar
+struct Foo { x: (u32, u32), y: u32, }
+let foo = Foo { x: (1, 2), y: 3 };
+match foo {
+    Foo { x: (1, b), y } => //match the 1, bind, b, y
+    ...
+}
+
 ```
 
 ## Infinite loop
