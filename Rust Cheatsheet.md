@@ -121,7 +121,9 @@ Rust is strongly typed. Types are determined at compile-time but may be set expl
 
 ## Literals
 
-The base is denoted with a lower case character. Underscore \_ is ignored and may be used to make long numbers more readable. The type may be specified explicitly, eg. `25u16`
+The base is denoted with a lower case character.  
+Underscore \_ in a literal is ignored. It improves readability.  
+The type of a literal may be specified explicitly, eg. `25u16`
 
 | Type           | Example                |
 | -------------- | ---------------------- |
@@ -132,15 +134,15 @@ The base is denoted with a lower case character. Underscore \_ is ignored and ma
 | Binary         | `0b1111_0000`          |
 | Byte (u8 only) | `b'A' `                |
 
-## Type Casting
+## Type Aliases: `type`
 
-Types may be explicitly cast using the `as` keyword
+Define an alias for a type using the `type` keyword . This is useful for shortening long type names.  
+The new type is just an alias and not a distinct type
 
 ```rust
-let d = 200 as f64    // d will be f64
+type NanoSecond = u64;
+let x: NanoSecond = 45;
 ```
-
-When casting from float to int the `as` keyword performs a _saturating cast_. If the floating point value exceeds the upper bound or is less than the lower bound, the returned value will be equal to the bound crossed.
 
 ## Tuples
 
@@ -173,7 +175,7 @@ let n = a.len();                      // Get the length of an array
 calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
 ```
 
-# Custom Types
+# Globals: `const` and `static`
 
 ## Const
 
@@ -193,8 +195,10 @@ const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
 - Have `'static` lifetime implicitly
 
 ```rust
-static SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
+static THRESHOLD: u32 = 101;    // Must use an explicit type
 ```
+
+# Custom Types
 
 ## Struct
 
@@ -261,7 +265,7 @@ let coin = Coin::Nickle;        // Instantiate
 let i = Coin::Nickle as i32;    // -> 1  Casting a C-like enum to an integer returns this index of the variant
 ```
 
-Enums can associate data with each variant
+Enums can associate data with each variant. Each variant can hold data of different types:
 
 ```rust
 enum Message {  // Define enum
@@ -274,11 +278,67 @@ enum Message {  // Define enum
 let message = Message:ChangeColor(34, 56, 78);  // Instantiate
 ```
 
-## Variable Binding
+# Type Conversion
+
+## Casting: `as`
+
+_Primitive_ types may be explicitly cast using the `as` keyword.  
+When casting from float to int the `as` keyword performs a _saturating_ cast.
+
+```rust
+let d = 200 as f64    // d will be f64
+```
+
+## Traits `From` and `Into`
+
+For custom types, one must implement the `From` trait.  
+The `Into` trait is the inverse, and is available for free  
+Many types such as strings already have these traits already implemented.  
+For cases where the conversion could fail, `TryFrom` and `TryInto` traits return a `Result`
+
+```rust
+use std::convert::From;
+
+#[derive(Debug)]
+struct Number {     // A custom type
+    value: i32,
+}
+
+impl From<i32> for Number {     // Implement From
+    fn from(item: i32) -> Self {
+        Number { value: item }
+    }
+}
+
+fn main() {
+    let j = 30;
+    let number1 = Number::from(j);     // Convert from i32 to Number
+
+    let k = 5;
+    let number2:Number = k.into(); // Convert k:i32 into a Number.  Type is required on the LHS
+}
+
+```
+
+## Converting to a String: `.to_string()`
+
+To convert a custom type to a String, simply implement the `fmt::Display` trait described oin the print! section.  
+This will automatically also provide a .to_string() function
+
+## Converting from a String: `.parse()`
+
+To convert a string to a number, use `.parse`, which is available for types that implement the `FromStr` trait.
+
+```rust
+let parsed: i32 = "5".parse().unwrap();
+let turbo_parsed = "10".parse::<i32>().unwrap();    // Alternate 'turbofish' syntax
+```
+
+# Variable Binding
 
 - Variables should be initialized when they are declared (though its not absolutely required)
-- Variables are block-scoped.
-- Variables are immutable by default unless the `mut` keyword is used
+- Variables are block-scoped {...}.
+- Variables are _immutable_ by default unless the `mut` keyword is used
 
 ```rust
 let x = 5;            // Decalre and initialize an immutable variable.
@@ -288,7 +348,7 @@ let user_age = 37;     // Use snake_case for variables
 let z: i32 = 65;       // Explicitly set variable type with variable_name: type
 ```
 
-### Shadowing
+## Shadowing
 
 Variables can be re-declared or 'shadowed' using the `let` keyword. This can change the type, value, and mutability of a variable within the scope of a block.
 
@@ -304,6 +364,169 @@ fn main() {
 ```
 
 <div style="page-break-after: always;"></div>
+
+# Flow control
+
+## If-Else
+
+No parentheses are required around the conditional, but braces are required around each block.
+
+```rust
+if n < 0 {
+    // Do something
+} else if n > 0 {
+    // Do something
+} else {
+    // Do something
+}
+```
+
+An if-else statement is an _expression_ which returns the value of any expression in the matching arm.
+
+```rust
+let x = if p > 0 {2*p} else {0}   // Similar to the ternary operator in C
+```
+
+## Match
+
+A `match` expression compares a value against a series of patterns and then executes code based on which pattern matches.
+
+- Matches are exhaustive. Every case must be handled explicitly
+- The first arm to match is the one that gets executed
+- Variables can be used to match a pattern. A match will bind the value to that variable
+- The \_ catchall can be used to disregard all other cases
+- Matches are expressions which can return a value
+
+```rust
+#[derive(Debug)] // so we can inspect the state below
+enum UsState {    // Enum of US States
+    Alabama,
+    Alaska,
+    // --snip--
+}
+
+enum Coin {       // Enum of Coin type
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),   // Quarters have an associated UsState enum attached.
+}
+
+let my_coin = Coin::Quarter(UsState::Alaska);    // Define a coin
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {        // Block in braces is executed
+          println!("Lucky penny!"); // Print something
+          1                         // Returns a value of 1
+        },
+        Coin::Nickel => 5,          // Returns a value of 5
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}!", state);  // Extracts the value of UsState
+            25                      // and returns 25
+        },
+    }
+}
+```
+
+### Matching Option\<T>
+
+```rust
+fn plus_one(x: Option<i32>) -> Option<i32> {    // Function takes and returns Option<i32>
+    match x {
+        None => None,             // Handle the case of None
+        Some(i) => Some(i + 1),   // Handle the case of Some()
+    }
+}
+
+let x = plus_one(Some(5));    // x = Some(6)
+let x = plus_one(None);       // x = None
+```
+
+## if-let
+
+For simple cases where there is either a single match or not, the `if-let` expression can be used. It does what `match` does but slightly less verbose
+
+```rust
+if let Coin::Quarter(state) = coin {    // Try to match coin with Coin::Quarter(state)...
+    println!("State quarter from {:?}!", state);    // Success, bind state
+} else {
+    count += 1;   // otherwise
+}
+```
+
+`if let` is useful for 'unwrapping' Option\<T>
+
+```rust
+let result = Some(567 i32);     // Result is an Option<i32>
+if let Some(value) = result {   // If it matches Some, bind value
+    value   // Return value
+}   // Otherwise return ()
+```
+
+## Infinite loop
+
+`loop` continues forever until a `break` statement is encountered. The `continue` statement can be used to skip the rest of the iteration and start a new one.
+
+```rust
+loop {
+  // Do stuff
+  if n == 5 {
+    break;      // Exit loop
+  }
+  if n == 10 {
+    continue;   // Go to next iteration
+  }
+}
+```
+
+A loop can have a return value given by the value of the expression aftfollowing the `break` statement
+
+```rust
+let result = loop {
+  // Do stuff
+  if n == 5 {
+    break 2*n;      // Exit loop and return 2*n = 10
+  }
+}
+```
+
+## While loop
+
+```rust
+while n < 100 {
+  // Do stuff
+}
+```
+
+## For-in loop
+
+The for in loop takes an iterator.  
+For numerical iterators, use a _range_: such as 1..100
+
+```rust
+for n in 1..100 {   // n = 1 to 99.  Upper limit is non-inclusive
+  // Do stuff
+}
+
+for n in 1..=100 {   // n = 1 to 100.  Upper limit is inclusive
+  // Do stuff
+}
+```
+
+In general `for in` loops take an iterator on a collection:
+
+```rust
+// Borrow each element leaving collection untouched and available for reuse after the loop.
+for name in names.iter() {...}
+
+// Consume the collection. No longer available as it has been 'moved' within the loop.
+for name in names.into_iter() {...}
+
+// Mutably borrow each element, allowing for the collection to be modified in place
+for name in names.iter_mut() {...}
+```
 
 ## Functions
 
@@ -375,39 +598,6 @@ impl Rectangle {
 let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 ```
 
-### Enums
-
-An enum defines a custom type with a discrete set of variants.
-
-```rust
-// Define a Fruit enum type.
-enum Fruit {        // Enum name is capitalized
-  Apple,          // Variants are also capitalized
-  Orange,
-  Pear,
-}
-
-// Instantiate a  variable of type Fruit
-let snack = Fruit::Orange;  // Orange has type Fruit, value Orange.  It is namespaced to Fruit
-```
-
-Each variant of an enum can have data of any type associated with it:
-
-```rust
-// Define a Message type and variants
-enum Message {
-    Quit,                         // No data
-    Move { x: i32, y: i32 },      // key-value struct.  Note BRACES, not parens
-    Write(String),                // String argument
-    ChangeColor(i32, i32, i32),   // i32 arguments
-}
-
-//  Instantiate 3 Messages
-let m1 = Message::Quit;
-let m2 = Message::Move { x: 3, y: 6 };
-let m3 = Message::Write(String::from("Wrote"));
-```
-
 The `match` flow control operator (below) is used for switching flow based on the value of an enum and its associated data, as well as for extracting associated data from an enum.
 
 ### Option\<T> Enum
@@ -429,148 +619,6 @@ let y = None();
 // Test an Option type
 x.is_some()     // Returns boolean
 x.is_none()     // Returns boolean
-```
-
-## Flow control
-
-### If-Else
-
-No parentheses are required around the conditional, but braces are required around each block.
-
-```rust
-if n < 0 {
-    // Do something
-} else if n > 0 {
-    // Do something
-} else {
-    // Do something
-}
-```
-
-An if-else statement is an _expression_ which returns the value of any expression in the matching arm.
-
-```rust
-let x = if p > 0 {2*p} else {0}   // Similar to the ternary operator in C
-```
-
-### Match
-
-A `match` expression compares a value against a series of patterns and then executes code based on which pattern matches.
-
-- Matches are exhaustive. Every case must be handled explicitly
-- The first arm to match is the one that gets executed
-- Variables can be used to match a pattern. A match will bind the value to that variable
-- The \_ catchall can be used to disregard all other cases
-
-```rust
-#[derive(Debug)] // so we can inspect the state below
-enum UsState {    // Enum of US States
-    Alabama,
-    Alaska,
-    // --snip--
-}
-
-enum Coin {       // Enum of Coin type
-    Penny,
-    Nickel,
-    Dime,
-    Quarter(UsState),   // Quarters have an associated UsState enum attached.
-}
-
-let my_coin = Coin::Quarter(UsState::Alaska);    // Define a coin
-
-fn value_in_cents(coin: Coin) -> u8 {
-    match coin {
-        Coin::Penny => {        // Block in braces is executed
-          println!("Lucky penny!"); // Print something
-          1                         // Returns a value of 1
-        },
-        Coin::Nickel => 5,          // Returns a value of 5
-        Coin::Dime => 10,
-        Coin::Quarter(state) => {
-            println!("State quarter from {:?}!", state);  // Extracts the value of UsState
-            25                      // and returns 25
-        },
-    }
-}
-```
-
-### Matching Option\<T>
-
-```rust
-fn plus_one(x: Option<i32>) -> Option<i32> {    // Function takes and returns Option<i32>
-    match x {
-        None => None,             // Handle the case of None
-        Some(i) => Some(i + 1),   // Handle the case of Some()
-    }
-}
-
-let x = plus_one(Some(5));    // x = Some(6)
-let x = plus_one(None);       // x = None
-```
-
-### if-let
-
-For simple cases where there is either a single match or not, the `if-let` expression can be used. It does what `match` does but slightly less verbose
-
-```rust
-if let Coin::Quarter(state) = coin {    // Try to match coin with Coin::Quarter(state)...
-    println!("State quarter from {:?}!", state);    // Success, bind state
-} else {
-    count += 1;   // otherwise
-}
-```
-
-`if let` is useful for 'unwrapping' Option\<T>
-
-```rust
-let result = Some(567 i32);     // Result is an Option<i32>
-if let Some(value) = result {   // If it matches Some, bind value
-    value   // Return value
-}   // Otherwise return ()
-```
-
-### Infinite loop
-
-Loop continues forever until a `break` statement is encountered. The `continue` statement can be used to skip the rest of the iteration and start a new one.
-
-```rust
-loop {
-  // Do stuff
-  if n == 5 {
-    break;      // Exit loop
-  }
-  if n == 10 {
-    continue;   // Go to next iteration
-  }
-}
-```
-
-A loop can have a return value given by the value of the expression after `break`
-
-```rust
-let result = loop {
-  // Do stuff
-  if n == 5 {
-    break 2*n;      // Exit loop and return 2*n = 10
-  }
-}
-```
-
-### While loop
-
-```rust
-while n < 100 {
-  // Do stuff
-}
-```
-
-### For-in loop
-
-```rust
-for n in 1..100 {   // n = 1 to 99
-  // Do stuff
-}
 ```
 
 ## Ownership
@@ -1010,7 +1058,7 @@ The compiler can provide basic implementations for the following traits via the 
 - `Default`, to create an empty instance of a data type.
 - `Debug`, to format a value using the {:?} formatter.
 
-## Generics
+# Generics
 
 Generics are used to create abstract, type-independent code for items like functions, structs, enums, and methods. If the first use of type X is preceeded by <X>, then X is generic.
 
