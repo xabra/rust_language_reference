@@ -146,6 +146,7 @@ let x: NanoSecond = 45;
 
 ## Tuples
 
+An unnamed group of unnamed variables. Can contain multiple types. Upper camel-case.  
 Create tuple:
 
 ```rust
@@ -175,9 +176,9 @@ let n = a.len();                      // Get the length of an array
 calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
 ```
 
-# Globals: `const` and `static`
+# Globals
 
-## Const
+## `const`
 
 - Constants are immutable.
 - Can be declared in any scope, including global.
@@ -188,7 +189,7 @@ calc(&a[1..4]);                       // Borrow (reference) a slice of the array
 const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
 ```
 
-## Static
+## `static`
 
 - Statics are similar to consts but are actual variables. They can also be mutable, but it is unsafe.
 - Typically used for mutable global variables
@@ -200,7 +201,9 @@ static THRESHOLD: u32 = 101;    // Must use an explicit type
 
 # Custom Types
 
-## Struct
+## `struct`
+
+A named group of named variables of possibly different types. Upper camel-case.
 
 ```rust
 struct User {         // Define a struct.  Upper camel case
@@ -249,7 +252,7 @@ let Pair(integer, decimal) = pair;  // Destructure a tuple struct
 let x = pair.0;                     // Access individual tuple struct elements
 ```
 
-## Enum
+## `enum`
 
 Defines a type by enumerating its possible variants
 
@@ -278,6 +281,27 @@ enum Message {  // Define enum
 let message = Message:ChangeColor(34, 56, 78);  // Instantiate
 ```
 
+### `Option\<T>` Enum
+
+The Option type is an enum that encodes when result could be something or nothing. The Option namespace is brought in in the rust prelude.
+
+```rust
+enum Option<T> {
+    None,
+    Some(T),
+}
+```
+
+```rust
+// Use an Option type
+let x = Some(val);
+let y = None();
+
+// Test an Option type
+x.is_some()     // Returns boolean
+x.is_none()     // Returns boolean
+```
+
 # Type Conversion
 
 ## Casting: `as`
@@ -292,7 +316,7 @@ let d = 200 as f64    // d will be f64
 ## Traits `From` and `Into`
 
 For custom types, one must implement the `From` trait.  
-The `Into` trait is the inverse, and is available for free  
+The `Into` trait is the inverse, and is available for free when From is implemented.  
 Many types such as strings already have these traits already implemented.  
 For cases where the conversion could fail, `TryFrom` and `TryInto` traits return a `Result`
 
@@ -334,7 +358,7 @@ let parsed: i32 = "5".parse().unwrap();
 let turbo_parsed = "10".parse::<i32>().unwrap();    // Alternate 'turbofish' syntax
 ```
 
-# Variable Binding
+# Variable Binding with `let`
 
 - Variables should be initialized when they are declared (though its not absolutely required)
 - Variables are block-scoped {...}.
@@ -367,7 +391,7 @@ fn main() {
 
 # Flow control
 
-## If-Else
+## `if else`
 
 No parentheses are required around the conditional, but braces are required around each block.
 
@@ -387,7 +411,7 @@ An if-else statement is an _expression_ which returns the value of any expressio
 let x = if p > 0 {2*p} else {0}   // Similar to the ternary operator in C
 ```
 
-## Match
+## `match`
 
 A `match` expression compares a value against a series of patterns and then executes code based on which pattern matches.
 
@@ -444,7 +468,7 @@ let x = plus_one(Some(5));    // x = Some(6)
 let x = plus_one(None);       // x = None
 ```
 
-## if-let
+## `if let` for simple matching
 
 For simple cases where there is either a single match or not, the `if-let` expression can be used. It does what `match` does but slightly less verbose
 
@@ -465,9 +489,10 @@ if let Some(value) = result {   // If it matches Some, bind value
 }   // Otherwise return ()
 ```
 
-## Destructuring in match
+## Destructuring with `match` and `if let`
 
-A match block can destructure tuples, arrays, slices, enums and structs
+A match block can destructure tuples, arrays, slices, enums and structs.  
+Destructuring reference types sometimes requires the ref keyword. See the docs.
 
 ```rust
 // Tuple destructuring
@@ -496,10 +521,20 @@ match foo {
     Foo { x: (1, b), y } => //match the 1, bind, b, y
     ...
 }
-
 ```
 
-## Infinite loop
+## Match Guards
+
+An if statement can be added to the arm of a match statement to the left of the arrow, to constrain if further.
+
+```rust
+match temperature {
+    Temperature::Celsius(t) if t > 30 => // If statement on match arm is a guard.
+    Temperature::Celsius(t) =>
+    Temperature::Farenheit(t) =>
+```
+
+## `loop` forever
 
 `loop` continues forever until a `break` statement is encountered. The `continue` statement can be used to skip the rest of the iteration and start a new one.
 
@@ -515,7 +550,7 @@ loop {
 }
 ```
 
-A loop can have a return value given by the value of the expression aftfollowing the `break` statement
+A loop can have a return value given by the value of the expression following the `break` statement
 
 ```rust
 let result = loop {
@@ -526,7 +561,7 @@ let result = loop {
 }
 ```
 
-## While loop
+## `while` loop
 
 ```rust
 while n < 100 {
@@ -534,7 +569,7 @@ while n < 100 {
 }
 ```
 
-## For-in loop
+## `for-in` loop
 
 The for in loop takes an iterator.  
 For numerical iterators, use a _range_: such as 1..100
@@ -549,7 +584,7 @@ for n in 1..=100 {   // n = 1 to 100.  Upper limit is inclusive
 }
 ```
 
-In general `for in` loops take an iterator on a collection:
+In general, `for in` loops take an iterator on a collection:
 
 ```rust
 // Borrow each element leaving collection untouched and available for reuse after the loop.
@@ -562,7 +597,7 @@ for name in names.into_iter() {...}
 for name in names.iter_mut() {...}
 ```
 
-## Functions
+# Functions: `fn`
 
 - Function bodies are made up of a series of _statements_, optionally ending in an _expression_.
 - Functions can appear in the code in any order. They do not need to be defined before use.
@@ -586,19 +621,14 @@ fn area(l: f64, w: f64) -> f64 {  // Return type specified after the arrow ->
 }
 ```
 
-## Methods & Associated Functions
+# Methods & Associated Functions: `impl`
 
-Associated Functions are functions defined in the context of a struct, enum, or trait.
+Methods and associated functions are defined in the context of a type such as struct, enum, or trait inside an `impl {}` block  
+Multiple `impl` blocks are allowed.
 
-- Associated Functions are defined inside an implementation block with keyword `impl`
-- Multiple implementation blocks are allowed
-
-### Methods
-
-A _method_ is an associated funtion where its first parameter is `&self` or `&mut self`.
-
-- Methods are associated with an _instance_ of a struct, enum or trait.
-- Methods are called using `struct_instance.method()`. The self parameter is passed implicitly
+_Associated Functions_ are functions defined on the _type_ generally, and not related to an instance.  
+_Methods_ apply to an _instance_ of a struct, enum or trait. Therefore the first parameter of a method definition is `&self` or `&mut self`.
+When calling a methodlike `my_struct.method()` the self parameter is passed implicit
 
 ```rust
 struct Rectangle {    // Define a struct
@@ -607,7 +637,7 @@ struct Rectangle {    // Define a struct
 }
 
 impl Rectangle {      // Define implementation block
-    fn area(&self) -> u32 { // Define methods.  &self is always the first argument
+    fn area(&self) -> u32 { // Define methods  &self is always the first argument
         self.width * self.height
     }
 }
@@ -615,9 +645,8 @@ impl Rectangle {      // Define implementation block
 let a = rect1.area(); // Call the method with dot notation.  &self is passed imlicitly
 ```
 
-- Associated functions that _do not_ have `&self` as the first parameter are associated with the struct _type_ rather than an _instance_.
-
-- These functions are often used for constructors or helper functions. They are accessed with the namespace operator `struct_type::function()`
+Associated functions are often used for constructors or helper functions.  
+They are called with the namespace operator `my_struct::function()`
 
 ```rust
 impl Rectangle {
@@ -632,30 +661,23 @@ impl Rectangle {
 let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 ```
 
-The `match` flow control operator (below) is used for switching flow based on the value of an enum and its associated data, as well as for extracting associated data from an enum.
+# Closures
 
-### Option\<T> Enum
+A closure is an anonymous function you can save in a variable or pass as an argument to other functions.
 
-The Option type is an enum that encodes when result could be something or nothing. The Option namespace is brought in in the rust prelude.
-
-```rust
-enum Option<T> {
-    None,
-    Some(T),
-}
-```
+- Closures do not require explicit typing of parameters and return values since they can often be inferred
+- Closures can capture their environment and access variables from the scope in which they’re defined.
 
 ```rust
-// Use an Option type
-let x = Some(val);
-let y = None();
+let my_closure = |param1, param2| {     // Define a closure
+    // do something here...
+    result // return a value
+};
 
-// Test an Option type
-x.is_some()     // Returns boolean
-x.is_none()     // Returns boolean
+my_closure(x, y)                       // Call the closure
 ```
 
-## Ownership
+# Ownership
 
 ### Rules
 
@@ -1161,22 +1183,6 @@ struct My_Struct<'a> {
 }
 ```
 
-## Closures
-
-A closure is an anonymous function you can save in a variable or pass as an argument to other functions.
-
-- Closures do not require explicit typing of parameters and return values since they can often be inferred
-- Closures can capture their environment and access variables from the scope in which they’re defined.
-
-```rust
-let my_closure = |param1, param2| {     // Define a closure
-    // do something here...
-    result // return a value
-};
-
-my_closure(x, y)                       // Call the closure
-```
-
 ## Iterators
 
 An iterator allows you to perform some task on a sequence of items in turn.
@@ -1285,8 +1291,9 @@ fn integration_test1() {
 ## Common Compiler Attributes
 
 - `#[allow(dead_code)]` - suppresses warnings about unused code
+- `#![allow(unused_variables)]` -
 - `#[test]` - define a test
 - `#[ignore = "not yet implemented"]` - ignore a test
 - `#[should_panic(expected = "values don't match")]` - test is only passed if code actually panics
-- `#[derive(PartialEq, Clone)]` - automatically derive traits
+- `#[derive(PartialEq, Clone, Debug)]` - automatically derive traits
 - `#[inline]` - suggests performing an inline expansion.
