@@ -372,6 +372,25 @@ let user_age = 37;     // Use snake_case for variables
 let z: i32 = 65;       // Explicitly set variable type with variable_name: type
 ```
 
+## Expressions and Blocks
+
+Expressions are found on the right-hand side of a `let` statement.  
+Blocks, denoted by {...} are also expressions.
+Thus, blocks can be used on the right-hand side of a `let` statement
+
+```rust
+// These are expressions
+x+1;        // Expression
+15;         // Expression
+
+// This block is an expression assigned to y
+let y = {
+    let x_squared = x * x;      // A statement
+    x_squared   // The block evaluates to x_squared since there is no `;`
+                // Otherwise, it would evaluate to ().
+};
+```
+
 ## Shadowing
 
 Variables can be re-declared or 'shadowed' using the `let` keyword. This can change the type, value, and mutability of a variable within the scope of a block.
@@ -661,7 +680,25 @@ impl Rectangle {
 let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 ```
 
-# Closures
+## The Never Type: `!`
+
+Functions that never return ('diverging functions') should return the 'never type' denoted by `!`  
+This is typically used for functions that never return such as in embedded or server applications.  
+This type can also be cast to any other type and therefore used at places where an exact type is required, for instance in match branches.
+
+```rust
+fn foo() -> ! {
+    panic!("This call never returns.");
+}
+
+fn bar() -> ! {
+    loop {  // Loop forever
+
+    };
+}
+```
+
+# Closures [Section, needs more detail]
 
 A closure is an anonymous function you can save in a variable or pass as an argument to other functions.
 
