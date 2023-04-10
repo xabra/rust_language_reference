@@ -1,105 +1,96 @@
-# Rust Cheat Sheet
+# Rust Cheat Sheet 1.0 <!-- omit from toc -->
 
-## Cargo: Create and Run a Project
+- [Cargo: Quick Start](#cargo-quick-start)
+- [Primitive Types](#primitive-types)
+  - [Scalar Types](#scalar-types)
+  - [Literals](#literals)
+  - [Type Aliases: `type`](#type-aliases-type)
+- [Compound Types](#compound-types)
+  - [Tuples](#tuples)
+  - [Arrays \& Slices](#arrays--slices)
+- [Constants \& Globals](#constants--globals)
+  - [`const`](#const)
+  - [`static`](#static)
+- [Custom Types](#custom-types)
+  - [`struct`](#struct)
+  - [Tuple Struct](#tuple-struct)
+  - [`enum`](#enum)
+- [Type Conversion](#type-conversion)
+  - [Casting: `as`](#casting-as)
+  - [Traits `From` and `Into`](#traits-from-and-into)
+  - [Converting to a String: `.to_string()`](#converting-to-a-string-to_string)
+  - [Converting from a String: `.parse()`](#converting-from-a-string-parse)
+- [Variable Binding: `let`](#variable-binding-let)
+  - [Expressions and Blocks](#expressions-and-blocks)
+  - [Shadowing](#shadowing)
+- [Flow control](#flow-control)
+  - [`if else`](#if-else)
+  - [`match`](#match)
+  - [`if let` for simple matching](#if-let-for-simple-matching)
+  - [Destructuring with `match` and `if let`](#destructuring-with-match-and-if-let)
+  - [Match Guards](#match-guards)
+- [Loops](#loops)
+  - [`loop`](#loop)
+  - [`while`](#while)
+  - [`for-in`](#for-in)
+- [Functions: `fn`](#functions-fn)
+- [Methods \& Associated Functions: `impl`](#methods--associated-functions-impl)
+  - [The Never Type: `!`](#the-never-type-)
+- [Closures \[Section, needs more detail\]](#closures-section-needs-more-detail)
+- [Ownership](#ownership)
+  - [References \& Borrowing](#references--borrowing)
+  - [Make Items Public with `pub`](#make-items-public-with-pub)
+  - [Bring Items Into Scope with `use`](#bring-items-into-scope-with-use)
+- [Collections](#collections)
+  - [Vector](#vector)
+  - [String](#string)
+  - [HashMap](#hashmap)
+- [Error Handling](#error-handling)
+  - [Propagate Errors Up](#propagate-errors-up)
+  - [Panic-on-Error](#panic-on-error)
+  - [Test a Result](#test-a-result)
+- [Traits](#traits)
+- [Generics](#generics)
+  - [Trait Bounds](#trait-bounds)
+  - [Lifetimes](#lifetimes)
+  - [Iterators](#iterators)
+  - [Code Testing](#code-testing)
+  - [Common Compiler Attributes](#common-compiler-attributes)
+- [Documentation \& Comments](#documentation--comments)
+  - [Comments](#comments)
+  - [Documentation Comments](#documentation-comments)
+- [Printing](#printing)
+  - [Print Marcros](#print-marcros)
+  - [Format Strings](#format-strings)
+  - [Implementing the Debug Trait](#implementing-the-debug-trait)
+  - [Implementing the Display trait](#implementing-the-display-trait)
+- [Rust Module System](#rust-module-system)
+  - [Package](#package)
+  - [Crates](#crates)
+  - [Modules](#modules)
+  - [Modules Across Multiple Files](#modules-across-multiple-files)
+  - [Paths](#paths)
+  - [Privacy](#privacy)
+- [Cargo TBD----](#cargo-tbd----)
 
-Cargo is Rust's build system and package manager. `cargo build` will invoke the Rust compiler, _rustc_
+# Cargo: Quick Start
+
+Cargo is Rust's build system and package manager.
 
 ```rust
-$ cargo new my_project      // Create a new binary project inside my_project directory
+$ cargo new my_project      // Create new my_project sub-directory with a new binary project inside
 $ cargo new --lib my_lib    // ...or create a new library project inside my_lib directory
-$ cd my_project               // change to the project directory
+$ cd my_project             // change to the project directory
 ...
-
+    // edit the source files in /src...
 ...
-$ cargo build               // Compile and build executable
+$ cargo build               // Compile and build executable Invoke the Rust compiler, _rustc_
 $ cargo build --release     // Compile and build executable to release
 $ cargo run                 // Compile build and run
 $ cargo check               // Check for compilation without executable
-$ cargo install cargo-modules   // install cargo module analyzer
-$ cargo modules generate tree --with-types   // Generate a module tree
 $ cargo doc                 // Generate documentation in target/doc/{crate name}/all.html
-```
-
-## Comments
-
-```rust
-// This is a line comment.
-
-/*
-    Block comments also work, but should generally be avoided
-*/
-```
-
-## Documentation Comments
-
-````rust
-/// This is an OUTER doc comment.
-/// Outer doc comments go BEFORE (outside) the item being commented, such as structs and functions
-
-//! This is an INNER doc comment.
-//! Inner doc comments go AFTER (inside) the item being documented, and are typically used for the main page of a crate.
-
-/// Doc comments support markdown, eg:
-/// # Heading
-/// `code inline`
-/// ``` code block```
-````
-
-# Printing
-
-## Print Marcros
-
-```rust
-print!();                // Print to io::stdout
-println!();              // Print to io::stdout with newline
-eprint!();              // Print to io::stderr
-eprintln!();
-let s: String = format!();  // Print to a string
-```
-
-## Format Strings
-
-```rust
-println!("Test {}", x);  // Must implement fmt::Display trait
-println!("{:?}", x);     // Debug Print struct with {:?} format.
-println!("{:b}", x);     // Binary: 1000101001
-println!("{:o}", x);     // Octal: 207454
-println!("{:x}", x);     // Hex (lowercase): 10f2c
-println!("{:X}", x);     // Hex (uppercase): 10F2C
-println!("{:.3}", x);    // Print x to 3 decimal places precision
-println!("{1}, {0}", "A", "B"); // Positional arguments -> Bob, Alice
-println!("{subject} {verb}", subject = "Alice", verb = "jumped");  // Named arguments
-
-let z: f64 = 1.0;
-println!("{z}");         // Print variables
-println!("{number:>5}", number=3);   // Right align in width 5
-println!("{number:0>5}", number=3);  // Pad left hand side with zeroes -> 00003
-```
-
-## Implementing the Debug Trait
-
-```rust
-#[derive(Debug)]    // auto-implement Debug trait for any type
-struct MyStruct(i32) {};
-```
-
-## Implementing the Display trait
-
-```rust
-use std::fmt; // Import `fmt`
-
-struct Point2D {
-    x: f64,
-    y: f64,
-}
-
-// implement `Display` for `Point2D`
-impl fmt::Display for Point2D {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Customize so only `x` and `y` are denoted.
-        write!(f, "x: {}, y: {}", self.x, self.y)
-    }
-}
+$ cargo test                // Run unit tests
+$ cargo install module      // Install a cargo module
 ```
 
 <div style="page-break-after: always;"></div>
@@ -144,6 +135,8 @@ type NanoSecond = u64;
 let x: NanoSecond = 45;
 ```
 
+# Compound Types
+
 ## Tuples
 
 An unnamed group of unnamed variables. Can contain multiple types. Upper camel-case.  
@@ -161,7 +154,7 @@ let (x, y, z) = a_tuple;       // By destructuring
 let q = a_tuple.1;             // Using dot notation.  Zero-based
 ```
 
-## Arrays
+## Arrays & Slices
 
 Arrays are fixed-length at run-time and contain only one type.
 
@@ -176,7 +169,7 @@ let n = a.len();                      // Get the length of an array
 calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
 ```
 
-# Globals
+# Constants & Globals
 
 ## `const`
 
@@ -281,7 +274,7 @@ enum Message {  // Define enum
 let message = Message:ChangeColor(34, 56, 78);  // Instantiate
 ```
 
-### `Option\<T>` Enum
+### `Option<T>` Enum
 
 The Option type is an enum that encodes when result could be something or nothing. The Option namespace is brought in in the rust prelude.
 
@@ -358,7 +351,7 @@ let parsed: i32 = "5".parse().unwrap();
 let turbo_parsed = "10".parse::<i32>().unwrap();    // Alternate 'turbofish' syntax
 ```
 
-# Variable Binding with `let`
+# Variable Binding: `let`
 
 - Variables should be initialized when they are declared (though its not absolutely required)
 - Variables are block-scoped {...}.
@@ -553,7 +546,9 @@ match temperature {
     Temperature::Farenheit(t) =>
 ```
 
-## `loop` forever
+# Loops
+
+## `loop`
 
 `loop` continues forever until a `break` statement is encountered. The `continue` statement can be used to skip the rest of the iteration and start a new one.
 
@@ -580,7 +575,7 @@ let result = loop {
 }
 ```
 
-## `while` loop
+## `while`
 
 ```rust
 while n < 100 {
@@ -588,7 +583,7 @@ while n < 100 {
 }
 ```
 
-## `for-in` loop
+## `for-in`
 
 The for in loop takes an iterator.  
 For numerical iterators, use a _range_: such as 1..100
@@ -840,96 +835,13 @@ let x = strfun(lit);         // ...or a literal
 
 <div style="page-break-after: always;"></div>
 
-## Rust Module System
-
-### Package
-
-A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that defines the package and describes how to build those crates.
-
-```
-my_project      <-- Package named 'my_project'
-│
-├───Cargo.toml      <-- .toml file
-├───Cargo.lock
-├───src/
-    │
-    ├───main.rs     <-- binary crate called 'my_project' (root)
-    ├───lib.rs      <-- library crate called 'my_project' (root)
-    ├───sub_module.rs
-    └───sub_module/
-        │
-        └───sub_sub_module.rs
-```
-
-### Crates
-
-Crates contain a tree of modules that produces a library or executable. The top-most module in a crate is called 'crate'
-
-```
-crate
- └── top_module
-     ├── submodule1
-     │   ├── function1
-     │   └── function2
-     └── submodule2
-         ├── function3
-         ├── function4
-         └── function5
-```
-
-### Modules
-
-Modules organize code scope into different namespaces. Modules are defined in the code using the `mod` keyword, folllowed by the module name and a code block in braces.
-
-```rust
-mod top_module {
-    mod submodule1 {            // Private module
-        ... // functions, structs, enums etc
-    }
-    pub mod submodule2 {        // Public module
-        ... // functions, structs, enums etc
-    }
-}
-```
-
-### Modules Across Multiple Files
-
-To separate modules into different files, use a semicolon after the module name, rather than a block. This tells Rust to load the contents of the module from another file under '/src' having the same name as the module.
-
-```rust
-pub mod my_module;      // Load module 'my_module' from 'src/my_module.rs'
-```
-
-### Paths
-
-Paths are way of naming an item, such as a struct, function, or module
-
-- An _absolute_ path starts from a crate root by using its _crate name_ or the literal `crate`.
-- A _relative_ path starts from the current module and uses `self`, `super`, or an identifier in the current module.
-
-```rust
-crate::main_module::submodule1::function1();        // Absolute path referring to the current crate
-
-main_module::submodule1::function1();               // Relative path
-
-super::submodule1::function1();                     // Refer up one level
-
-self::submodule1::function1();                      // Refer to the current level
-```
-
-### Privacy
-
-- All items (functions, methods, structs, enums, modules, and constants) are private by default.
-- Items in a parent module can’t use private items inside child modules.
-- Items in child modules _can_ use private items in their ancestor modules and their sibling modules
-
-### Make Items Public with `pub`
+## Make Items Public with `pub`
 
 - Use the `pub` keyword to mark items public.
 - Making a module public doesn’t make its contents public. Use `pub` on the contents if needed.
 - Individual elements of a struct must be made public for them to be visible
 
-### Bring Items Into Scope with `use`
+## Bring Items Into Scope with `use`
 
 ```rust
 use rand::Rng;                  // Bring external dependencies defined in Cargo.toml into scope
@@ -941,9 +853,9 @@ pub use crate::main::sub;       // Re-export a name with 'pub use', making avail
 
 <div style="page-break-after: always;"></div>
 
-## Collections
+# Collections
 
-### Vector
+## Vector
 
 ```rust
 // Initializing:
@@ -962,7 +874,7 @@ v.push(5);                       // Push an element on the end of a vector
 let an_option = v.pop();         // Pops last element and returns an Option to the value popped
 ```
 
-### String
+## String
 
 - Strings are UTF-8 encoded. Individual unicode scalars may correspond to multiple bytes in memory.
 - Rust does not allow you to index into a string using []
@@ -992,7 +904,7 @@ for b in s.bytes() {    // s.bytes() is an iterator over the bytes
 }
 ```
 
-### HashMap
+## HashMap
 
 - Hash Maps store a collection of key-value pairs. Hash Maps are not part of the rust prelude.
 
@@ -1012,7 +924,7 @@ hm.entry(key).or_insert(value);   // Returns a mutable reference to the existing
 
 <div style="page-break-after: always;"></div>
 
-## Error Handling
+# Error Handling
 
 When Rust encounters a non-recoverable error, it is said to 'panic'. You can call the macro `panic!` to halt the program and unwind the stack.
 
@@ -1029,7 +941,7 @@ enum Result<T, E> {
 }
 ```
 
-### Propagate Errors Up
+## Propagate Errors Up
 
 To propagate errors up to the caller function, return a `Result<T,E>`. Use `match` or `if` statements to handle the two cases and return Ok() or Err() accordingly:
 
@@ -1062,7 +974,7 @@ fn caller_function() -> Result<T,E> {
 }
 ```
 
-### Panic-on-Error
+## Panic-on-Error
 
 To handle a Result by panicking, one can use `match`:
 
@@ -1083,7 +995,7 @@ let x = result.unwrap();      // Binds an Ok value to x or panicks if Err
 let x = result.expect("My error message");    // Same as unwrap, but includes a custom error message
 ```
 
-### Test a Result
+## Test a Result
 
 To check if a Result is an Err or Ok, for example inside an assertion, use:
 
@@ -1094,7 +1006,7 @@ my_result.is_err()      // Returns boolean
 
 <div style="page-break-after: always;"></div>
 
-## Traits
+# Traits
 
 Traits define behavior shared between different types, similar to an _interface_. A trait is a collection of methods defined for an unknown type: `Self`. Note: either the trait or the type must be local to the implementation crate
 
@@ -1334,3 +1246,177 @@ fn integration_test1() {
 - `#[should_panic(expected = "values don't match")]` - test is only passed if code actually panics
 - `#[derive(PartialEq, Clone, Debug)]` - automatically derive traits
 - `#[inline]` - suggests performing an inline expansion.
+
+# Documentation & Comments
+
+## Comments
+
+```rust
+// This is a line comment.
+
+/*
+    Block comments also work, but should generally be avoided
+*/
+```
+
+## Documentation Comments
+
+````rust
+/// This is an OUTER doc comment.
+/// Outer doc comments go BEFORE (outside) the item being commented, such as structs and functions
+
+//! This is an INNER doc comment.
+//! Inner doc comments go AFTER (inside) the item being documented, and are typically used for the main page of a crate.
+
+/// Doc comments support markdown, eg:
+/// # Heading
+/// `code inline`
+/// ``` code block```
+````
+
+# Printing
+
+## Print Marcros
+
+```rust
+print!();                // Print to io::stdout
+println!();              // Print to io::stdout with newline
+eprint!();              // Print to io::stderr
+eprintln!();
+let s: String = format!();  // Print to a string
+```
+
+## Format Strings
+
+```rust
+println!("Test {}", x);  // Must implement fmt::Display trait
+println!("{:?}", x);     // Debug Print struct with {:?} format.
+println!("{:b}", x);     // Binary: 1000101001
+println!("{:o}", x);     // Octal: 207454
+println!("{:x}", x);     // Hex (lowercase): 10f2c
+println!("{:X}", x);     // Hex (uppercase): 10F2C
+println!("{:.3}", x);    // Print x to 3 decimal places precision
+println!("{1}, {0}", "Alice", "Bob"); // Positional arguments -> Bob, Alice
+println!("{subject} {verb}", subject = "Alice", verb = "jumped");  // Named arguments
+
+let z: f64 = 1.0;
+println!("{z}");         // Print variables
+println!("{number:>5}", number=3);   // Right align in width 5
+println!("{number:0>5}", number=3);  // Pad left hand side with zeroes -> 00003
+```
+
+## Implementing the Debug Trait
+
+```rust
+#[derive(Debug)]    // auto-implement Debug trait for any type
+struct MyStruct(i32) {};
+```
+
+## Implementing the Display trait
+
+```rust
+use std::fmt; // Import `fmt`
+
+struct Point2D {
+    x: f64,
+    y: f64,
+}
+
+// implement `Display` for `Point2D`
+impl fmt::Display for Point2D {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Customize so only `x` and `y` are denoted.
+        write!(f, "x: {}, y: {}", self.x, self.y)
+    }
+}
+```
+
+# Rust Module System
+
+## Package
+
+A package is one or more crates that provide a set of functionality. A package contains a Cargo.toml file that defines the package and describes how to build those crates.
+
+```
+my_project      <-- Package named 'my_project'
+│
+├───Cargo.toml      <-- .toml file
+├───Cargo.lock
+├───src/
+    │
+    ├───main.rs     <-- binary crate called 'my_project' (root)
+    ├───lib.rs      <-- library crate called 'my_project' (root)
+    ├───sub_module.rs
+    └───sub_module/
+        │
+        └───sub_sub_module.rs
+```
+
+## Crates
+
+Crates contain a tree of modules that produces a library or executable. The top-most module in a crate is called 'crate'
+
+```
+crate
+ └── top_module
+     ├── submodule1
+     │   ├── function1
+     │   └── function2
+     └── submodule2
+         ├── function3
+         ├── function4
+         └── function5
+```
+
+## Modules
+
+Modules organize code scope into different namespaces. Modules are defined in the code using the `mod` keyword, folllowed by the module name and a code block in braces.
+
+```rust
+mod top_module {
+    mod submodule1 {            // Private module
+        ... // functions, structs, enums etc
+    }
+    pub mod submodule2 {        // Public module
+        ... // functions, structs, enums etc
+    }
+}
+```
+
+## Modules Across Multiple Files
+
+To separate modules into different files, use a semicolon after the module name, rather than a block. This tells Rust to load the contents of the module from another file under '/src' having the same name as the module.
+
+```rust
+pub mod my_module;      // Load module 'my_module' from 'src/my_module.rs'
+```
+
+## Paths
+
+Paths are way of naming an item, such as a struct, function, or module
+
+- An _absolute_ path starts from a crate root by using its _crate name_ or the literal `crate`.
+- A _relative_ path starts from the current module and uses `self`, `super`, or an identifier in the current module.
+
+```rust
+crate::main_module::submodule1::function1();        // Absolute path referring to the current crate
+
+main_module::submodule1::function1();               // Relative path
+
+super::submodule1::function1();                     // Refer up one level
+
+self::submodule1::function1();                      // Refer to the current level
+```
+
+## Privacy
+
+- All items (functions, methods, structs, enums, modules, and constants) are private by default.
+- Items in a parent module can’t use private items inside child modules.
+- Items in child modules _can_ use private items in their ancestor modules and their sibling modules
+
+# Cargo TBD----
+
+```rust
+$ cargo install cargo-modules   // install cargo module analyzer
+$ cargo modules generate tree --with-types   // Generate a module tree
+```
