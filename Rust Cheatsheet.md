@@ -4,11 +4,11 @@
 - [Primitive Types](#primitive-types)
   - [Scalar Types](#scalar-types)
   - [Literals](#literals)
-  - [Type Aliases: `type`](#type-aliases-type)
+  - [Type Alias: `type`](#type-alias-type)
 - [Compound Types](#compound-types)
   - [Tuples](#tuples)
   - [Arrays \& Slices](#arrays--slices)
-- [Constants \& Globals](#constants--globals)
+- [Constants](#constants)
   - [`const`](#const)
   - [`static`](#static)
 - [Custom Types](#custom-types)
@@ -52,9 +52,11 @@
 - [Traits](#traits)
 - [Generics](#generics)
   - [Trait Bounds](#trait-bounds)
-  - [Lifetimes](#lifetimes)
-  - [Iterators](#iterators)
-  - [Code Testing](#code-testing)
+- [Lifetimes](#lifetimes)
+- [Iterators](#iterators)
+  - [Create an iterator from a collection](#create-an-iterator-from-a-collection)
+  - [Get the next item: `next()`](#get-the-next-item-next)
+- [Code Testing](#code-testing)
   - [Common Compiler Attributes](#common-compiler-attributes)
 - [Documentation \& Comments](#documentation--comments)
   - [Comments](#comments)
@@ -125,7 +127,7 @@ The type of a literal may be specified explicitly, eg. `25u16`
 | Binary         | `0b1111_0000`          |
 | Byte (u8 only) | `b'A' `                |
 
-## Type Aliases: `type`
+## Type Alias: `type`
 
 Define an alias for a type using the `type` keyword . This is useful for shortening long type names.  
 The new type is just an alias and not a distinct type
@@ -156,27 +158,38 @@ let q = a_tuple.1;             // Using dot notation.  Zero-based
 
 ## Arrays & Slices
 
-Arrays are fixed-length at run-time and contain only one type.
+Arrays are _fixed-length_ at run-time and contain only one type.
+
+Create array
 
 ```rust
 let a = [1, 2, 3, 4, 5];              // Create an array
 let a: [i32; 5] = [1, 2, 3, 4, 5];    // Set type and length explicitly
-let a = [3; 5];                       // Initialize array of length 5 with 3 in every position.
+let a = [3; 5];                       // Initialize array of length 5 with 3 in every position. a = [3,3,3,3,3]
+```
 
-y = a[2];                             // Access the elements of an array with square brackets
+Access array
+
+```rust
+y = a[2];                             // Access the element of array with square brackets
 let n = a.len();                      // Get the length of an array
+```
 
+A slice is a _reference_
+to part of an array
+
+```rust
 calc(&a[1..4]);                       // Borrow (reference) a slice of the array from element 1 to element 3
 ```
 
-# Constants & Globals
+# Constants
 
 ## `const`
 
 - Constants are immutable.
 - Can be declared in any scope, including global.
-- Type must be declared explicity. The naming convention is to use all caps.
-- The const is inlined in the code with the value at compile time. It has no address.
+- Type must be declared explicity. Use all caps case
+- The const is inlined in the code with the value set at compile time. It has no address.
 
 ```rust
 const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
@@ -184,8 +197,8 @@ const SECONDS_PER_DAY: u32 = 60 * 60 * 24;    // Must use an explicit type
 
 ## `static`
 
-- Statics are similar to consts but are actual variables. They can also be mutable, but it is unsafe.
-- Typically used for mutable global variables
+- Statics are similar to consts but are actual variables, with an address.
+- They can be mutable, but it is unsafe. Typically used for mutable global variable
 - Have `'static` lifetime implicitly
 
 ```rust
@@ -308,33 +321,42 @@ let d = 200 as f64    // d will be f64
 
 ## Traits `From` and `Into`
 
-For custom types, one must implement the `From` trait.  
-The `Into` trait is the inverse, and is available for free when From is implemented.  
-Many types such as strings already have these traits already implemented.  
+Many standard types implement the `From` trait and the complementary
 For cases where the conversion could fail, `TryFrom` and `TryInto` traits return a `Result`
+
+```Rust
+use std::convert::From;
+
+let to_val = ToType::from(from_val);    // Returns a 'ToType' value from the value passed in
+let to_val = from_val.into();           // Converts from_val into the type on the LHS
+```
+
+For custom types, implement the From trait.  
+The `Into` trait is automatically created.
 
 ```rust
 use std::convert::From;
 
-#[derive(Debug)]
-struct Number {     // A custom type
-    value: i32,
-}
+struct Number { value: i32,}    // Custom type
 
-impl From<i32> for Number {     // Implement From
+impl From<i32> for Number {     // Implement From for Number to convert from i32 to Number
     fn from(item: i32) -> Self {
         Number { value: item }
     }
 }
-
-fn main() {
-    let j = 30;
-    let number1 = Number::from(j);     // Convert from i32 to Number
-
-    let k = 5;
-    let number2:Number = k.into(); // Convert k:i32 into a Number.  Type is required on the LHS
+impl From<Number> for i32 {     // Implement From for i32 to convert from Number to i32
+    fn from(item: Number) -> Self {
+        item.value
+    }
 }
 
+fn main() {
+    let n1:Number = Number::from(30);  // Convert i32 --> Number
+    let n2:Number = 40.into();
+
+    let i1:i32 = i32::from(n1);         // Convert Number --> I32
+    let i2:i32 = n2.into();
+}
 ```
 
 ## Converting to a String: `.to_string()`
@@ -1109,7 +1131,7 @@ fn printer<T: Display + Debug>(t: T) {
 }
 ```
 
-## Lifetimes
+# Lifetimes
 
 - Every _reference_ in Rust has a lifetime, which is the scope for which that reference is valid.
 - Most of the time, lifetimes are implicit and inferred, but sometimes they need to be made explicit for the _borrow checker_
@@ -1132,11 +1154,23 @@ struct My_Struct<'a> {
 }
 ```
 
-## Iterators
+# Iterators
 
-An iterator allows you to perform some task on a sequence of items in turn.
+An iterator implements the `Iterator` trait which interates through a sequence of elements such as in a collection, for example. It allows you to perform some task on a sequence of items in turn using the `next()` method
 
-- Iterators are lazy: they have no effect until you call methods that consume the iterator.
+Iterators are lazy: they have no effect until you call methods that consume the iterator.
+
+## Create an iterator from a collection
+
+There are three common methods which can create iterators from a collection:
+
+- `iter()`, which iterates over &T.
+- `iter_mut()`, which iterates over &mut T.
+- `into_iter()`, which iterates over T.
+
+## Get the next item: `next()`
+
+`my_iter.next()` will return `Some(item)` if there is an item available, or `None()` otherwise.
 
 ```rust
 let v1 = vec![1, 2, 3];   // Define a vector
@@ -1149,7 +1183,7 @@ x = v1_iter.next()            // Returns Some(&val) or None
 
 <div style="page-break-after: always;"></div>
 
-## Code Testing
+# Code Testing
 
 Tests have the following form:
 
