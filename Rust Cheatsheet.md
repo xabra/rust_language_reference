@@ -54,9 +54,12 @@
   - [Trait Bounds](#trait-bounds)
 - [Lifetimes](#lifetimes)
 - [Iterators](#iterators)
+  - [Iterator Trait](#iterator-trait)
+  - [Implementing Iterator trait](#implementing-iterator-trait)
   - [Create an iterator from a collection](#create-an-iterator-from-a-collection)
-  - [Get the next item: `next()`](#get-the-next-item-next)
-- [Code Testing](#code-testing)
+  - [Iterators and `for-in` loops](#iterators-and-for-in-loops)
+  - [Adapters](#adapters)
+- [Testing](#testing)
   - [Common Compiler Attributes](#common-compiler-attributes)
 - [Documentation \& Comments](#documentation--comments)
   - [Comments](#comments)
@@ -1156,21 +1159,42 @@ struct My_Struct<'a> {
 
 # Iterators
 
-An iterator implements the `Iterator` trait which interates through a sequence of elements such as in a collection, for example. It allows you to perform some task on a sequence of items in turn using the `next()` method
+## Iterator Trait
 
+An iterator implements the `Iterator` trait. An iterator can cycle through a sequence of items such as those in a collection using the `next()` method.  
+`my_iter.next()` returns `Some(item)` if there is an item available, or `None` otherwise.  
 Iterators are lazy: they have no effect until you call methods that consume the iterator.
+
+```rust
+trait Iterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+}
+```
+
+## Implementing Iterator trait
+
+```rust
+struct Counter { count: usize,}   // A struct to hold iterator's state.
+
+impl Iterator for Counter { // Implement iterator trait for that struct
+    type Item = usize;        // we will be counting with usize
+
+    fn next(&mut self) -> Option<Self::Item> {  // next() is the only required method
+        self.count += 1;
+        if self.count < 6 { Some(self.count) } else { None}
+    }
+}
+```
 
 ## Create an iterator from a collection
 
-There are three common methods which can create iterators from a collection:
+Collections are typically not iterators themselves, but they can be converted into an iterator.  
+There are three common methods which create iterators from a standard collection, `c`:
 
-- `iter()`, which iterates over &T.
-- `iter_mut()`, which iterates over &mut T.
-- `into_iter()`, which iterates over T.
-
-## Get the next item: `next()`
-
-`my_iter.next()` will return `Some(item)` if there is an item available, or `None()` otherwise.
+- `c.into_iter()`, iterates over the items themselves (T).
+- `c.iter()`, iterates over _borrowed_ references to the items (&T).
+- `c.iter_mut()`, iterates over _mutable references_ to the items (&mut T).
 
 ```rust
 let v1 = vec![1, 2, 3];   // Define a vector
@@ -1179,11 +1203,24 @@ let mut v1_iter = v1.iter();  // Create a (mutable) iterator on v1
 x = v1_iter.next()            // Returns Some(&val) or None
 ```
 
-...... not finished.....
+## Iterators and `for-in` loops
+
+## Adapters
+
+Adapters are functions (traits?) that consumean interator and produce a new iterator, allowing the chaining of iterators. For example
+
+```rust
+.Sum()    // Sums the elements
+.Filter(
+  .Sort()
+  .Map()
+  .Collect
+)
+```
 
 <div style="page-break-after: always;"></div>
 
-# Code Testing
+# Testing
 
 Tests have the following form:
 
