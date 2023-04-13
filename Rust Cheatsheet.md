@@ -35,8 +35,10 @@
   - [`for-in`](#for-in)
 - [Functions: `fn`](#functions-fn)
 - [Methods \& Associated Functions: `impl`](#methods--associated-functions-impl)
+  - [Methods](#methods)
+  - [Associated Functions](#associated-functions)
   - [The Never Type: `!`](#the-never-type-)
-- [Closures \[Section, needs more detail\]](#closures-section-needs-more-detail)
+- [Closures](#closures)
 - [Ownership](#ownership)
   - [References \& Borrowing](#references--borrowing)
   - [Make Items Public with `pub`](#make-items-public-with-pub)
@@ -56,10 +58,13 @@
 - [Iterators](#iterators)
   - [Iterator Trait](#iterator-trait)
   - [Implementing Iterator trait](#implementing-iterator-trait)
-  - [Create an iterator from a collection](#create-an-iterator-from-a-collection)
+  - [Create an Iterator from Collection](#create-an-iterator-from-collection)
   - [Iterators and `for-in` loops](#iterators-and-for-in-loops)
-  - [Adapters](#adapters)
+  - [Iterator Adaptors \& Consuming Adaptors](#iterator-adaptors--consuming-adaptors)
 - [Testing](#testing)
+  - [Unit Tests](#unit-tests)
+  - [Integration Tests](#integration-tests)
+  - [Running Tests](#running-tests)
   - [Common Compiler Attributes](#common-compiler-attributes)
 - [Documentation \& Comments](#documentation--comments)
   - [Comments](#comments)
@@ -665,9 +670,10 @@ fn area(l: f64, w: f64) -> f64 {  // Return type specified after the arrow ->
 Methods and associated functions are defined in the context of a type such as struct, enum, or trait inside an `impl {}` block  
 Multiple `impl` blocks are allowed.
 
-_Associated Functions_ are functions defined on the _type_ generally, and not related to an instance.  
+## Methods
+
 _Methods_ apply to an _instance_ of a struct, enum or trait. Therefore the first parameter of a method definition is `&self` or `&mut self`.
-When calling a methodlike `my_struct.method()` the self parameter is passed implicit
+When calling a methodlike `my_struct.method()` the self parameter is passed implicitly
 
 ```rust
 struct Rectangle {    // Define a struct
@@ -684,6 +690,9 @@ impl Rectangle {      // Define implementation block
 let a = rect1.area(); // Call the method with dot notation.  &self is passed imlicitly
 ```
 
+## Associated Functions
+
+_Associated Functions_ are functions defined on the _type_ generally, and not related to an instance.  
 Associated functions are often used for constructors or helper functions.  
 They are called with the namespace operator `my_struct::function()`
 
@@ -718,7 +727,7 @@ fn bar() -> ! {
 }
 ```
 
-# Closures [Section, needs more detail]
+# Closures
 
 A closure is an anonymous function you can save in a variable or pass as an argument to other functions.
 
@@ -1161,13 +1170,14 @@ struct My_Struct<'a> {
 
 ## Iterator Trait
 
-An iterator implements the `Iterator` trait. An iterator can cycle through a sequence of items such as those in a collection using the `next()` method.  
+An iterator implements the `Iterator` trait defined in std::iter module.  
+An iterator can cycle through a sequence of items such as those in a collection using the `next()` method.  
 `my_iter.next()` returns `Some(item)` if there is an item available, or `None` otherwise.  
 Iterators are lazy: they have no effect until you call methods that consume the iterator.
 
 ```rust
 trait Iterator {
-    type Item;
+    type Item;    // Associated type, required
     fn next(&mut self) -> Option<Self::Item>;
 }
 ```
@@ -1187,35 +1197,36 @@ impl Iterator for Counter { // Implement iterator trait for that struct
 }
 ```
 
-## Create an iterator from a collection
+## Create an Iterator from Collection
 
 Collections are typically not iterators themselves, but they can be converted into an iterator.  
+The iterator must be declared `mut`.  
 There are three common methods which create iterators from a standard collection, `c`:
 
-- `c.into_iter()`, iterates over the items themselves (T).
-- `c.iter()`, iterates over _borrowed_ references to the items (&T).
-- `c.iter_mut()`, iterates over _mutable references_ to the items (&mut T).
-
-```rust
-let v1 = vec![1, 2, 3];   // Define a vector
-
-let mut v1_iter = v1.iter();  // Create a (mutable) iterator on v1
-x = v1_iter.next()            // Returns Some(&val) or None
-```
+- `c.into_iter()` _Consumes_ the collection and returns each item (T).
+- `c.iter()` _Borrows_ each item (&T) leaving the collection unconsumed and available for reuse.
+- `c.iter_mut()` _Mutably borrows_ each item (&mut T) of a _mutable_ collection, leaving the collection unconsumed and available for reuse. Useful for in-place modification of elements.
 
 ## Iterators and `for-in` loops
 
-## Adapters
+The `for-in` loop takes an _iterator_ after the `in` keyword and iterates through the items.  
+If given a _collection_, it will automatically convert the collection to an iterator using `into_iter()`, thereby consuming the collection.
 
-Adapters are functions (traits?) that consumean interator and produce a new iterator, allowing the chaining of iterators. For example
+## Iterator Adaptors & Consuming Adaptors
+
+Iterator adapters are functions that take iterator and produce a new iterator, allowing the chaining of iterators.  
+Consuming adaptors take an iterator, consume it and produce some result.  
+Becasue iterators are lazy, they do nothing until a consuming adaptor is called.
 
 ```rust
-.Sum()    // Sums the elements
-.Filter(
-  .Sort()
-  .Map()
-  .Collect
-)
+// Iterator Adaptors
+.take(n)           // Take the first n elements
+.map(|x| x*2)      // Modify each element according to the closure
+.filter()
+
+// Consuming Adapters
+.sum()             // Sums the elements.
+.collect()         // Turn the iterator into a collection
 ```
 
 <div style="page-break-after: always;"></div>
@@ -1266,7 +1277,7 @@ fn return_a_result() -> Result<(), String> {
 }
 ```
 
-### Unit Tests
+## Unit Tests
 
 - _Unit_ tests go in the same file as the code they are testing.
 - They need the annotation `#[cfg(test)]` to tell the compiler to compile the tests only if it is running `cargo test`
@@ -1287,7 +1298,7 @@ mod tests {     // This is the test module
 }
 ```
 
-### Integration Tests
+## Integration Tests
 
 - Put integration test files in a directory named _tests_, located in the project folder at the same level as the _src_ directory.
 - There is no need for the annotation `#[cfg(test)]` or `use super::*;`
@@ -1301,7 +1312,7 @@ fn integration_test1() {
 }
 ```
 
-### Running Tests
+## Running Tests
 
 - Run all tests with `cargo test`
 - Print output will be suppressed on _successful_ tests, unless you run `cargo test -- --show-output`
