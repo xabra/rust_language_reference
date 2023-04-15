@@ -52,8 +52,16 @@
   - [Panic-on-Error](#panic-on-error)
   - [Test a Result](#test-a-result)
 - [Traits](#traits)
+  - [`Self` Type and Associated Types in Traits](#self-type-and-associated-types-in-traits)
+  - [Traits as function parameters:](#traits-as-function-parameters)
+  - [Derivable Traits](#derivable-traits)
 - [Generics](#generics)
   - [Trait Bounds](#trait-bounds)
+- [Smart Pointers](#smart-pointers)
+  - [Box](#box)
+  - [Rc \& Arc](#rc--arc)
+  - [Ref, RefMut, RefCell](#ref-refmut-refcell)
+  - [Interior Mutability](#interior-mutability)
 - [Lifetimes](#lifetimes)
 - [Iterators](#iterators)
   - [Iterator Trait](#iterator-trait)
@@ -898,7 +906,7 @@ let v = Vec::from([1, 2, 3, 4]); // Create a new vector from a literal
 let v = vec![1, 2, 3, 4];           // Create a new vector from literals with inferred types, using vec! macro
 
 // Accessing:
-let x = v[3];                    // Get a reference to element 3.  Panic if out of range
+let x = v[3];                    // Get a reference to element 3.  Panic if out of bounds
 let o = v.get(3);                // Returns an Option with a reference to an element, or None() if out of bounds
 let o = v.get(1..2);             // Returns an Option with a reference to a slice, or None() if out of bounds
 let o = v.get(1..2);             // Returns an Option with a reference to a slice, or None() if out of bounds
@@ -1042,7 +1050,8 @@ my_result.is_err()      // Returns boolean
 
 # Traits
 
-Traits define behavior shared between different types, similar to an _interface_. A trait is a collection of methods defined for an unknown type: `Self`. Note: either the trait or the type must be local to the implementation crate
+Traits define behavior shared between different types, similar to an _interface_. A trait is a collection of methods defined for an unknown type: `Self`.  
+Either the trait or the type must be defined local to the implementation crate
 
 ```rust
 // Define a trait
@@ -1072,7 +1081,21 @@ impl MyTrait for MyStruct {
 my_struct.method2()
 ```
 
-Traits can be function parameters:
+## `Self` Type and Associated Types in Traits
+
+When a trait is defined, it won't know what type it will be implemented _for_. There may be other types in the trait definition that can't be known until it is implemented.
+The `Self` type refers generically to the type the trait will be implemented _for_.  
+Associated types are other placeholder types that must be specified concretely in the the trait implementation.
+
+```rust
+// Example of Self and Associated types in the Iterator trait
+trait Iterator {
+    type Item;      // Item is an Associated type, to be determined by implementation.
+    fn next(&mut self) -> Option<Self::Item>;   // Self is the type the iterator is implemented FOR
+}
+```
+
+## Traits as function parameters:
 
 ```rust
 pub fn my_function(item: &impl MyTrait) { ... }   // Take a reference to item that implements MyTrait
@@ -1086,16 +1109,22 @@ Functions can return a trait:
 fn returns_trait() -> impl MyTrait { ... }
 ```
 
-### Derive Attribute
+## Derivable Traits
 
-The compiler can provide basic implementations for the following traits via the `#[derive(trait_name)]` attribute:
+The compiler can provide basic implementations of the following traits on custom types by using the `#[derive(trait_name)]` attribute:
 
-- `Eq, PartialEq, Ord, PartialOrd` comparison traits
-- `Clone`, to create T from &T via a copy.
-- `Copy`, to give a type 'copy semantics' instead of 'move semantics'.
-- `Hash`, to compute a hash from &T.
-- `Default`, to create an empty instance of a data type.
-- `Debug`, to format a value using the {:?} formatter.
+| Trait      | Functions/Operators         | Description                                              |
+| ---------- | --------------------------- | -------------------------------------------------------- |
+| PartialEq  | ==, eq(), !=, ne()          | Allows comparisons of two instances of a type            |
+| Eq         |                             | Signals full equivalence. Every value equals itself      |
+| PartialOrd | >=, <=, >, <, partial_cmp() | Allows ordering of two instances of a type               |
+| Ord        |                             | Signals every value has a valid ordering                 |
+| Clone      | clone()                     | Make a deep copy                                         |
+| Copy       |                             | Give a type 'copy semantics' instead of 'move semantics' |
+| Debug      |                             | Debug formatting using {:?}                              |
+| Default    | default()                   | Create a default instance of a type                      |
+| Hash       | hash()                      | Compute a hash for a type                                |
+|            |                             |                                                          |
 
 # Generics
 
@@ -1142,6 +1171,16 @@ fn printer<T: Display + Debug>(t: T) {
     ...
 }
 ```
+
+# Smart Pointers
+
+## Box
+
+## Rc & Arc
+
+## Ref, RefMut, RefCell
+
+## Interior Mutability
 
 # Lifetimes
 
