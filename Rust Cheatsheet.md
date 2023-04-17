@@ -61,6 +61,7 @@
   - [Box](#box)
   - [Rc \& Arc](#rc--arc)
   - [Ref, RefMut, RefCell](#ref-refmut-refcell)
+  - [Deref and Drop Traits](#deref-and-drop-traits)
   - [Interior Mutability](#interior-mutability)
 - [Lifetimes](#lifetimes)
 - [Iterators](#iterators)
@@ -69,7 +70,7 @@
   - [Create an Iterator from Collection](#create-an-iterator-from-collection)
   - [Iterators and `for-in` loops](#iterators-and-for-in-loops)
   - [Iterator Adaptors \& Consuming Adaptors](#iterator-adaptors--consuming-adaptors)
-- [Testing](#testing)
+- [Code Testing](#code-testing)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
   - [Running Tests](#running-tests)
@@ -948,7 +949,7 @@ for b in s.bytes() {    // s.bytes() is an iterator over the bytes
 
 ## HashMap
 
-- Hash Maps store a collection of key-value pairs. Hash Maps are not part of the rust prelude.
+Hash Maps store a collection of key-value pairs. Hash Maps are not part of the rust prelude.
 
 ```rust
 use std::collections::HashMap;    // Bring into scope
@@ -1174,11 +1175,30 @@ fn printer<T: Display + Debug>(t: T) {
 
 # Smart Pointers
 
+Smart pointers are data structures that act like a pointer but also have additional metadata and capabilities.  
+Unlike normal references, smart pointers often own the data they point to.  
+Vec<T> and String are smart pointers
+
 ## Box
+
+`Box<T>` is a pointer to an object on the _heap_. It is useful for:
+
+- Types whose size can’t be known at compile time such as recursize types like linked lists or graphs.
+- Storing a large amount of data and transferring ownership without copying it.
+- Owned types that implements a particular trait.
+
+```rust
+// Create a new Box
+let b = Box::new(my_struct{...});
+```
 
 ## Rc & Arc
 
+`Rc<T>` is a reference counting type that enables multiple ownership
+
 ## Ref, RefMut, RefCell
+
+## Deref and Drop Traits
 
 ## Interior Mutability
 
@@ -1238,7 +1258,7 @@ impl Iterator for Counter { // Implement iterator trait for that struct
 
 ## Create an Iterator from Collection
 
-Collections are typically not iterators themselves, but they can be converted into an iterator.  
+Collections are not iterators, but they can be converted into an iterator.  
 The iterator must be declared `mut`.  
 There are three common methods which create iterators from a standard collection, `c`:
 
@@ -1261,7 +1281,7 @@ Becasue iterators are lazy, they do nothing until a consuming adaptor is called.
 // Iterator Adaptors
 .take(n)           // Take the first n elements
 .map(|x| x*2)      // Modify each element according to the closure
-.filter()
+.filter(|x| x>3)   // Filter, keeping only items that return true
 
 // Consuming Adapters
 .sum()             // Sums the elements.
@@ -1270,7 +1290,7 @@ Becasue iterators are lazy, they do nothing until a consuming adaptor is called.
 
 <div style="page-break-after: always;"></div>
 
-# Testing
+# Code Testing
 
 Tests have the following form:
 
