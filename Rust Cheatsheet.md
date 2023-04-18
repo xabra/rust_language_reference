@@ -61,7 +61,8 @@
   - [Box](#box)
   - [Rc \& Arc](#rc--arc)
   - [Ref, RefMut, RefCell](#ref-refmut-refcell)
-  - [Deref and Drop Traits](#deref-and-drop-traits)
+  - [Deref \& DerefMut Traits](#deref--derefmut-traits)
+  - [Drop Trait](#drop-trait)
   - [Interior Mutability](#interior-mutability)
 - [Lifetimes](#lifetimes)
 - [Iterators](#iterators)
@@ -90,6 +91,7 @@
   - [Modules Across Multiple Files](#modules-across-multiple-files)
   - [Paths](#paths)
   - [Privacy](#privacy)
+- [Attributes](#attributes)
 - [Cargo TBD----](#cargo-tbd----)
 
 # Cargo: Quick Start
@@ -1186,6 +1188,7 @@ Vec<T> and String are smart pointers
 - Types whose size can’t be known at compile time such as recursize types like linked lists or graphs.
 - Storing a large amount of data and transferring ownership without copying it.
 - Owned types that implements a particular trait.
+- Collections of heterogeneous trait objects
 
 ```rust
 // Create a new Box
@@ -1198,7 +1201,54 @@ let b = Box::new(my_struct{...});
 
 ## Ref, RefMut, RefCell
 
-## Deref and Drop Traits
+## Deref & DerefMut Traits
+
+The `Deref` trait defines how to dereference a type using the `deref()` function, or more commonly the deref operator `*`.  
+Custom pointer types that implement `Deref` will behave sensibly when the `*` is applied to the type.  
+The compiler does automatic deref coercion on many types. Any type that implements `Deref` will benefit from this automatic deref coercion as well.  
+The `DerefMut` trait will override the `*` operator on _mutable_ references.
+
+```rust
+// Define a custom continer type MyBox
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
+
+// Implement the Deref trait for MyBox
+use std::ops::Deref;
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;  // Associated type
+
+    fn deref(&self) -> &Self::Target {  // deref() function actually returns a REFERENCE to the object
+        &self.0
+    }
+}
+
+// Main
+fn main() {
+    let y = MyBox::new(5);
+    assert_eq!(5, *y);  // *y is converted to *(y.deref())
+}
+```
+
+## Drop Trait
+
+The `Drop` trait lets you specify what code to run when a value is about to go out of scope.  
+It is often used for deallocating memory of a custom smart pointer type.
+
+```rust
+impl Drop for CustomSmartPointer {
+    fn drop(&mut self) {
+        println!("Dropping CustomSmartPointer with data `{}`!", self.data);
+        // Or dealloc here...
+    }
+}
+```
 
 ## Interior Mutability
 
@@ -1380,8 +1430,12 @@ fn integration_test1() {
 
 ## Common Compiler Attributes
 
-- `#[allow(dead_code)]` - suppresses warnings about unused code
-- `#![allow(unused_variables)]` -
+Attributes applied to specific functions should be placed just before the function or struct.  
+Attributes placed at the top of a crate using `#![...]` will apply to the whole crate.
+
+- `#[allow(dead_code)]` - suppresses warnings about unused code for a function
+- `#[allow(unused_variables)]` - suppresses warnings about unused variables
+- `#[allow(unused)]` - suppresses warnings about both unused variables and dead code
 - `#[test]` - define a test
 - `#[ignore = "not yet implemented"]` - ignore a test
 - `#[should_panic(expected = "values don't match")]` - test is only passed if code actually panics
@@ -1554,6 +1608,8 @@ self::submodule1::function1();                      // Refer to the current leve
 - All items (functions, methods, structs, enums, modules, and constants) are private by default.
 - Items in a parent module can’t use private items inside child modules.
 - Items in child modules _can_ use private items in their ancestor modules and their sibling modules
+
+# Attributes
 
 # Cargo TBD----
 
