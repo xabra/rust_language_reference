@@ -72,6 +72,11 @@
   - [Create an Iterator from Collection](#create-an-iterator-from-collection)
   - [Iterators and `for-in` loops](#iterators-and-for-in-loops)
   - [Iterator Adaptors \& Consuming Adaptors](#iterator-adaptors--consuming-adaptors)
+- [Constructors \& `new()`](#constructors--new)
+  - [No Constructor in Rust](#no-constructor-in-rust)
+  - [Idiomatic Constructor using `new()` and `default()`](#idiomatic-constructor-using-new-and-default)
+  - [Implementing `Default`](#implementing-default)
+  - [Constructors Returning Option or Result](#constructors-returning-option-or-result)
 - [Code Testing](#code-testing)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
@@ -250,8 +255,8 @@ A function that instantiates a struct using shorthand syntax and returns the new
 ```rust
 fn init_user(name: String, age: i32) -> User {
   User {      // Final expression in the function returns User
-    name        // Shorthand avoids repeating the parameter "name: name"
-    age: age    // or the verbose way
+    name,        // Shorthand avoids repeating the parameter "name: name"
+    age: age,    // or the verbose way
   }
 }
 
@@ -1351,6 +1356,56 @@ Becasue iterators are lazy, they do nothing until a consuming adaptor is called.
 ```
 
 <div style="page-break-after: always;"></div>
+
+# Constructors & `new()`
+
+## No Constructor in Rust
+
+There is no constructor defined in Rust. Fundamentally, the only way to create an instance of a user defined type is to initialize all its fields:
+
+```rust
+let foo = Foo { a: 0, b: 1, c: false };
+```
+
+## Idiomatic Constructor using `new()` and `default()`
+
+_Idiomatic_ Rust uses associated function `new()` which returns an instance of the type.  
+If the Default trait is implemented for the type, then a new instance with default values can be created using `Default::default()`.  
+For custom types the Default trait can be derived using `#[derive(Default)]`, if all its elements also implement Default.
+
+```rust
+#[derive(Default)]    // Derive the Default trait
+impl Foo {
+    fn new(b:i32) -> Self {   // Define new()
+      // Can do some processing here...
+        Foo {   // Return Foo struct with all values set
+            a: 0,
+            b,    // Shorthand for passed in b value
+            c: false,
+        }
+    }
+}
+
+let foo = Foo:new(); // Use new() to construct
+```
+
+## Implementing `Default`
+
+```Rust
+impl Default for Bar {
+    fn default() -> Self { // Fill in default values here }
+}
+
+let bar: Bar = Default::default(); // Use default() to construct
+```
+
+## Constructors Returning Option or Result
+
+If a `new()` constructor can fail returning a Result<T> or Option<T>, any type that implements Default can call `unwrap_or_default()` which returns the contained Ok/Some value or the default otherwise.
+
+```rust
+let foo = Foo::new().unwrap_or_default();
+```
 
 # Code Testing
 
