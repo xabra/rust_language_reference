@@ -52,6 +52,7 @@
   - [Panic-on-Error](#panic-on-error)
   - [Test a Result](#test-a-result)
 - [Traits](#traits)
+  - [Default Trait Implementations](#default-trait-implementations)
   - [`Self` Type and Associated Types in Traits](#self-type-and-associated-types-in-traits)
   - [Traits as function parameters:](#traits-as-function-parameters)
   - [Derivable Traits](#derivable-traits)
@@ -1054,13 +1055,22 @@ my_result.is_err()      // Returns boolean
 # Traits
 
 Traits define behavior shared between different types, similar to an _interface_. A trait is a collection of methods defined for an unknown type: `Self`.  
-Either the trait or the type must be defined local to the implementation crate
+Generally, a trait defines only the required function _signatures_.  
+Either the trait or the type it is being implemented for must be defined local to the implementation crate, aka the _orphan rule_
+
+## Default Trait Implementations
+
+A trait may optionally provide a _default_ implementation of any of its methods, rather than just the signature.  
+If the method is not implemented for the type, the default trait implementation will be used.
 
 ```rust
 // Define a trait
 pub trait MyTrait {
-    fn method1(&self) -> String;   // provide a method signature for each type
-    fn method2(&self) {            // Optionally provide a default implementation
+    fn method1(&self) -> String;   // provide a method SIGNATURE for each type
+    fn method2(&self) {            // Optionally provide a DEFAULT implementation
+        ...
+    }
+    fn method3(&self) {            // Another DEFAULT implementation
         ...
     }
 }
@@ -1072,16 +1082,18 @@ pub struct MyStruct {
 
 // Implement the trait for the type
 impl MyTrait for MyStruct {
-    fn method1(&self) -> String {       // Methods go here
+    fn method1(&self) -> String {  // method1 MUST be defined since there is no default
         ...
     }
-    fn method2(&self) {
+    fn method2(&self) {       // method2 overrides the DEFAULT implementation
         ...
     }
+    // method3 is NOT overridden; default will be used
 }
 
-// Call the trait like any other method
-my_struct.method2()
+// Call the trait methods like any other methods
+my_struct.method2() // Calls the overridden method at the type level
+my_struct.method3() // Calls the DEFAULT implementation at the trait level
 ```
 
 ## `Self` Type and Associated Types in Traits
