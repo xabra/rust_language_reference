@@ -56,6 +56,8 @@
   - [`Self` Type and Associated Types in Traits](#self-type-and-associated-types-in-traits)
   - [Traits as function parameters:](#traits-as-function-parameters)
   - [Derivable Traits](#derivable-traits)
+  - [Marker Traits](#marker-traits)
+  - [Auto Traits](#auto-traits)
 - [Generics](#generics)
   - [Trait Bounds](#trait-bounds)
 - [Smart Pointers](#smart-pointers)
@@ -78,6 +80,7 @@
   - [Implementing `Default`](#implementing-default)
   - [Constructors Returning Option or Result](#constructors-returning-option-or-result)
 - [Builder Pattern](#builder-pattern)
+- [TypeState Pattern](#typestate-pattern)
 - [Code Testing](#code-testing)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
@@ -1147,6 +1150,14 @@ The compiler can provide basic implementations of the following traits on custom
 | Hash       | hash()                      | Compute a hash for a type                                |
 |            |                             |                                                          |
 
+## Marker Traits
+
+Marker traits are traits that mark a type as having a certain property. Marker traits do not have any trait items such as methods, associated functions, associated constants, or associated types.
+
+## Auto Traits
+
+Auto traits are marker traits that get automatically implemented for a type if it passes certain conditions. An example is the `Sized` trait.
+
 # Generics
 
 Generics are used to create abstract, type-independent code for items like functions, structs, enums, and methods. If the first use of type X is preceeded by <X>, then X is generic.
@@ -1410,7 +1421,7 @@ let foo = Foo::new().unwrap_or_default();
 
 # Builder Pattern
 
-The builder pattern is used to initialize larger data types where some of the parameters may be optional or need to be initialized independently using chained setters.
+The builder pattern is used to initialize larger data types where some of the fields may be optional or need to be initialized independently using chained setters.
 
 ```rust
 pub struct MyStruct {   // Define type to be constructed
@@ -1451,6 +1462,8 @@ impl MyStructBuilder {    // Implement builder
 //   Usage:  s = MyStruct::new().setter().build();
 let s: MyStruct = MyStruct::new(22).name(String::from("Guest")).build();
 ```
+
+# TypeState Pattern
 
 # Code Testing
 
