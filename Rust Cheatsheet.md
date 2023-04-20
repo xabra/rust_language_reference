@@ -77,6 +77,7 @@
   - [Idiomatic Constructor using `new()` and `default()`](#idiomatic-constructor-using-new-and-default)
   - [Implementing `Default`](#implementing-default)
   - [Constructors Returning Option or Result](#constructors-returning-option-or-result)
+- [Builder Pattern](#builder-pattern)
 - [Code Testing](#code-testing)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
@@ -1405,6 +1406,50 @@ If a `new()` constructor can fail returning a Result<T> or Option<T>, any type t
 
 ```rust
 let foo = Foo::new().unwrap_or_default();
+```
+
+# Builder Pattern
+
+The builder pattern is used to initialize larger data types where some of the parameters may be optional or need to be initialized independently using chained setters.
+
+```rust
+pub struct MyStruct {   // Define type to be constructed
+    a: i32,     // Required parameter
+    name: String,  // Optional parameter
+}
+
+pub struct MyStructBuilder{   // Define Builder type
+    a: i32,
+    name: Option<String>,  // May not be present
+}
+
+impl MyStruct {     // Implement new() so that it returns an minimally initialized BUILDER struct
+    fn new(a: i32) -> MyStructBuilder {
+        MyStructBuilder {
+            a,        // Required, passed in to new()
+            name: None,  // Optional, initially None
+        }
+    }
+}
+
+impl MyStructBuilder {    // Implement builder
+    // Define chainable setter methods for each optional parameter
+    fn name(&mut self, name: String) -> &mut Self {
+        self.name = Some(name);
+        self
+    }
+
+    // Define build method which collects parameters from builder...
+    fn build(& self) -> MyStruct {
+        MyStruct {    // ...and fills the original type with the collected values
+            a: self.a,
+            name: self.name.clone().unwrap_or_default(),  // If still None, assigns default value
+        }
+    }
+}
+
+//   Usage:  s = MyStruct::new().setter().build();
+let s: MyStruct = MyStruct::new(22).name(String::from("Guest")).build();
 ```
 
 # Code Testing
