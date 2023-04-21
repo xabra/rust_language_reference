@@ -58,6 +58,7 @@
   - [Derivable Traits](#derivable-traits)
   - [Marker Traits](#marker-traits)
   - [Auto Traits](#auto-traits)
+  - [Supertraits and Subtraits](#supertraits-and-subtraits)
 - [Generics](#generics)
   - [Trait Bounds](#trait-bounds)
 - [Smart Pointers](#smart-pointers)
@@ -1156,7 +1157,21 @@ Marker traits are traits that mark a type as having a certain property. Marker t
 
 ## Auto Traits
 
-Auto traits are marker traits that get automatically implemented for a type if it passes certain conditions. An example is the `Sized` trait.
+Auto traits are _marker_ traits that get automatically implemented by the compiler if the type passes certain conditions. An example is the `Sized` trait.
+
+## Supertraits and Subtraits
+
+Supertraits are a superset of subtraits which take the supertrait as a trait bound.
+
+```rust
+trait Person {    // Person is a supertrait of Student
+    fn name(&self) -> String;
+}
+
+trait Student: Person { // Student is a subtrait of Person
+    fn university(&self) -> String;
+}
+```
 
 # Generics
 
