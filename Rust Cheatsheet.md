@@ -37,7 +37,8 @@
 - [Methods \& Associated Functions: `impl`](#methods--associated-functions-impl)
   - [Methods](#methods)
   - [Associated Functions](#associated-functions)
-  - [The Never Type: `!`](#the-never-type-)
+  - [`Self` type](#self-type)
+  - [Never Type: `!`](#never-type-)
 - [Closures](#closures)
 - [Ownership](#ownership)
   - [References \& Borrowing](#references--borrowing)
@@ -731,7 +732,21 @@ impl Rectangle {
 let sq = Rectangle::square(3);  // Call function namespaced to Rectangle
 ```
 
-## The Never Type: `!`
+## `Self` type
+
+The keyword `Self` is a placeholder for the _type_ that a method or associated function is implemented for.
+
+```rust
+struct Foo { data: i32 }
+
+impl Foo {
+    fn double_foo(value: &Self) -> Self { // Here 'Self' represents the Foo type
+        Self { data: value.data * 2 }
+    }
+}
+```
+
+## Never Type: `!`
 
 Functions that never return ('diverging functions') should return the 'never type' denoted by `!`  
 This is typically used for functions that never return such as in embedded or server applications.  
@@ -1108,9 +1123,8 @@ my_struct.method3() // Calls the DEFAULT implementation at the trait level
 
 ## `Self` Type and Associated Types in Traits
 
-When a trait is defined, it won't know what type it will be implemented _for_. There may be other types in the trait definition that can't be known until it is implemented.
-The `Self` type refers generically to the type the trait will be implemented _for_.  
-Associated types are other placeholder types that must be specified concretely in the the trait implementation.
+When a trait is defined, it won't know what type it will be implemented _for_. The `Self` type allows the trait to refer generically to the type the trait will be implemented _for_.  
+Similarly, there may be other types in the trait definition that can't be known until it is implemented. Associated types are placeholders for such types. They must be specified concretely in the the trait implementation.
 
 ```rust
 // Example of Self and Associated types in the Iterator trait
@@ -1479,6 +1493,58 @@ let s: MyStruct = MyStruct::new(22).name(String::from("Guest")).build();
 ```
 
 # TypeState Pattern
+
+The typestate pattern encodes a finite state machine into an API. The compiler will prohibit invalid transitions between states _at compile time_. Key elements are
+
+- Each state is represented using one (or more) unit structs
+- The state machine struct takes a generic state parameter(s) representing the allowed states.
+- The state type parameter must be used, so the state machine should have a private field of type `_state: PhantomData::<state>` which is zero-sized.
+- Implement the state machine for each state
+- Allowed transitions from one state to another correspond to methods on one state that return a different state.
+- Add a new() constructor to initialize the state machine to a particular state. Add other methods to each state depending on what is permitted in that state.
+
+```rust
+mod state_machine { // API ina module
+    use std::marker::PhantomData;
+
+    // Define the states.  Public
+    pub struct A;
+    pub struct B;
+    pub struct C;
+
+    // The state machine
+    pub struct StateMachine<State = A> {  // Default state is A
+        _state: PhantomData<State>  //Private. Cant be set outside the module
+        // Other variables here
+    }
+
+    impl StateMachine<A> {
+        pub fn new() -> Self {      // Constructor
+            Self { _state:PhantomData::<A> }
+        }
+        pub fn b(self) -> StateMachine<B> { // Pass in self, rather than &self, so the state is consumed
+            StateMachine {_state: PhantomData::<B>,}
+        }
+    }
+    impl StateMachine<B> {
+        pub fn c(self) -> StateMachine<C> {
+            StateMachine { _state: PhantomData::<C> }
+        }
+    }
+    impl StateMachine<C> {
+        pub fn b(self) -> StateMachine<B> {
+            StateMachine { _state: PhantomData::<B>}
+        }
+    }
+}
+
+fn main(){
+  let sm  = crate::state_machine::StateMachine::new();
+  let sm = sm.b();  // Transition to state b
+  let sm = sm.c();
+  let sm = sm.b();
+}
+```
 
 # Code Testing
 
